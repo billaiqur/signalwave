@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signalwave — Log in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#161A2C;
+    --ink-soft:#6B7086;
+    --paper:#FFFFFF;
+    --field-bg:#F5F5F8;
+    --line:#E7E7EE;
+    --indigo:#5B4FD1;
+    --indigo-deep:#4A3FBD;
+    --positive:#1FA971;
+    --negative:#E0524A;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter', sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    min-height:100vh;
+  }
+  a{color:inherit;}
+
+  .screen{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    min-height:100vh;
+  }
+
+  /* ---------- LEFT: INTRO ---------- */
+  .intro{
+    position:relative;
+    overflow:hidden;
+    background:linear-gradient(160deg, #5A6CE0 0%, #8264C9 42%, #C46F86 75%, #E68A6E 100%);
+    color:#fff;
+    display:flex;
+    flex-direction:column;
+    padding:52px 56px 44px;
+  }
+
+  .blob-field{
+    position:absolute;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+  }
+  .blob{
+    position:absolute;
+    border-radius:50%;
+    filter:blur(2px);
+    opacity:0.85;
+  }
+  .blob.b1{
+    width:420px; height:420px;
+    left:-60px; top:38%;
+    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.55), rgba(255,255,255,0) 45%),
+                radial-gradient(circle at 65% 70%, rgba(120,140,255,0.65), rgba(120,140,255,0) 60%),
+                linear-gradient(135deg, rgba(255,255,255,0.25), rgba(255,255,255,0) 60%);
+    filter:blur(0.5px);
+    mix-blend-mode:screen;
+  }
+  .blob.b2{
+    width:300px; height:300px;
+    left:170px; top:30%;
+    background:radial-gradient(circle at 40% 35%, rgba(255,255,255,0.6), rgba(255,255,255,0) 50%),
+                radial-gradient(circle at 60% 65%, rgba(230,140,150,0.55), rgba(230,140,150,0) 60%);
+    mix-blend-mode:screen;
+    filter:blur(1px);
+  }
+  .blob.b3{
+    width:200px; height:200px;
+    left:60px; top:56%;
+    background:radial-gradient(circle at 45% 30%, rgba(255,255,255,0.7), rgba(255,255,255,0) 55%),
+                radial-gradient(circle at 55% 70%, rgba(90,110,225,0.6), rgba(90,110,225,0) 60%);
+    mix-blend-mode:screen;
+  }
+  .blob.b4{
+    width:140px; height:140px;
+    left:260px; top:66%;
+    background:radial-gradient(circle at 40% 30%, rgba(255,255,255,0.65), rgba(255,255,255,0) 55%),
+                radial-gradient(circle at 60% 70%, rgba(240,170,120,0.55), rgba(240,170,120,0) 60%);
+    mix-blend-mode:screen;
+  }
+  .blob.glow{
+    width:520px; height:520px;
+    left:-120px; top:32%;
+    background:radial-gradient(circle, rgba(255,255,255,0.16), rgba(255,255,255,0) 70%);
+    filter:blur(20px);
+  }
+
+  .brand{
+    position:relative; z-index:1;
+    display:flex;
+    align-items:center;
+    gap:11px;
+  }
+  .brand .logo-mark{
+    width:36px; height:36px;
+    border-radius:10px;
+    background:rgba(255,255,255,0.18);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex:0 0 auto;
+    backdrop-filter:blur(2px);
+  }
+  .brand .wordmark{
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:700;
+    font-size:19px;
+    letter-spacing:-0.01em;
+    color:#fff;
+  }
+
+  .intro-copy{
+    position:relative; z-index:1;
+    margin-top:auto;
+    max-width:480px;
+  }
+  .intro-copy h1{
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:800;
+    font-size:42px;
+    line-height:1.15;
+    letter-spacing:-0.01em;
+    margin:0 0 18px;
+    color:#fff;
+  }
+  .intro-copy p{
+    font-size:15.5px;
+    line-height:1.65;
+    color:rgba(255,255,255,0.85);
+    margin:0;
+    max-width:420px;
+  }
+
+  .proof-row{
+    position:relative; z-index:1;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-top:44px;
+  }
+  .proof-pills{
+    display:flex;
+  }
+  .proof-pill{
+    width:30px; height:30px;
+    border-radius:50%;
+    border:2px solid rgba(255,255,255,0.9);
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px;
+    font-weight:700;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    color:#fff;
+    margin-left:-8px;
+  }
+  .proof-pill:first-child{ margin-left:0; }
+  .proof-pill.pos{ background:var(--positive); }
+  .proof-pill.neg{ background:var(--negative); }
+  .proof-pill.neu{ background:#F2B84B; }
+  .proof-text{
+    font-size:13.5px;
+    color:rgba(255,255,255,0.85);
+  }
+  .proof-text strong{ color:#fff; }
+
+  /* ---------- RIGHT: LOGIN ---------- */
+  .login-side{
+    background:var(--paper);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:48px;
+  }
+  .login-card{
+    width:100%;
+    max-width:400px;
+  }
+  .login-card h2{
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:800;
+    font-size:30px;
+    margin:0 0 6px;
+    letter-spacing:-0.01em;
+  }
+  .login-card .sub{
+    font-size:14.5px;
+    color:var(--ink-soft);
+    margin:0 0 28px;
+  }
+
+  .social-col{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    margin-bottom:24px;
+  }
+  .social-btn{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    padding:13px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:#fff;
+    font-size:14.5px;
+    font-weight:600;
+    color:var(--ink);
+    cursor:pointer;
+    transition:border-color 0.15s, background 0.15s;
+  }
+  .social-btn:hover{ border-color:var(--indigo); background:#FAFAFF; }
+  .social-btn svg{ width:18px; height:18px; flex:0 0 auto; }
+
+  .divider{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin:6px 0 24px;
+    font-size:11.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+  }
+  .divider::before, .divider::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+
+  .field{
+    margin-bottom:16px;
+  }
+  .field label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+    margin-bottom:7px;
+  }
+  .field .input-wrap{
+    position:relative;
+    display:flex;
+    align-items:center;
+  }
+  .field .input-wrap svg.icon-left{
+    position:absolute;
+    left:14px;
+    width:16px; height:16px;
+    color:var(--ink-soft);
+    pointer-events:none;
+  }
+  .field .input-wrap svg.icon-right{
+    position:absolute;
+    right:14px;
+    width:17px; height:17px;
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .field input{
+    width:100%;
+    padding:12px 14px 12px 40px;
+    font-size:14.5px;
+    font-family:'Inter', sans-serif;
+    background:var(--field-bg);
+    border:1px solid transparent;
+    border-radius:10px;
+    color:var(--ink);
+    outline:none;
+    transition:border-color 0.15s, background 0.15s;
+  }
+  .field input#password{ padding-right:40px; }
+  .field input::placeholder{ color:#9A9DAE; }
+  .field input:focus{
+    background:#fff;
+    border-color:var(--indigo);
+    box-shadow:0 0 0 3px rgba(91,79,209,0.14);
+  }
+
+  .row-between{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:13.5px;
+    margin:4px 0 22px;
+  }
+  .row-between a{
+    color:var(--indigo);
+    text-decoration:none;
+    font-weight:600;
+  }
+  .row-between .remember{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--ink);
+    font-weight:500;
+  }
+  .row-between .remember input{
+    width:17px; height:17px;
+    accent-color:var(--indigo);
+  }
+
+  .btn-primary{
+    width:100%;
+    padding:14px;
+    background:var(--indigo);
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    font-size:15px;
+    font-weight:700;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    letter-spacing:0.01em;
+    cursor:pointer;
+    transition:background 0.15s, transform 0.1s;
+  }
+  .btn-primary:hover{ background:var(--indigo-deep); }
+  .btn-primary:active{ transform:scale(0.99); }
+
+  .signup-note{
+    margin-top:26px;
+    font-size:14px;
+    color:var(--ink-soft);
+    text-align:center;
+  }
+  .signup-note a{
+    color:var(--indigo);
+    font-weight:700;
+    text-decoration:none;
+  }
+
+  @media (max-width: 900px){
+    .screen{ grid-template-columns:1fr; }
+    .intro{ padding:36px 28px; min-height:380px; }
+    .intro-copy h1{ font-size:30px; }
+    .login-side{ padding:36px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="screen">
+
+  <!-- LEFT: INTRO -->
+  <section class="intro">
+    <div class="blob-field">
+      <div class="blob glow"></div>
+      <div class="blob b1"></div>
+      <div class="blob b2"></div>
+      <div class="blob b3"></div>
+      <div class="blob b4"></div>
+    </div>
+
+    <div class="brand">
+      <span class="logo-mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 15c2.2 0 3.3-7 5.5-7s3.3 7 5.5 7 3.3-7 5.5-7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="wordmark">Signalwave</span>
+    </div>
+
+    <div class="intro-copy">
+      <h1>Know how your audience feels, the moment they say it</h1>
+      <p>Join thousands of brand and social teams who track comments, mentions, and sentiment across every channel with Signalwave.</p>
+    </div>
+
+    <div class="proof-row">
+      <div class="proof-pills">
+        <span class="proof-pill pos">92%</span>
+        <span class="proof-pill neu">6%</span>
+        <span class="proof-pill neg">2%</span>
+      </div>
+      <span class="proof-text">Sentiment split across <strong>4,200+ comments</strong> tracked today</span>
+    </div>
+  </section>
+
+  <!-- RIGHT: LOGIN -->
+  <section class="login-side">
+    <div class="login-card">
+      <h2>Welcome back</h2>
+      <p class="sub">Enter your details to see today's sentiment feed</p>
+
+      <div class="social-col">
+        <button class="social-btn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 12.2c0-.68-.06-1.33-.17-1.96H12v3.71h5.02c-.22 1.17-.88 2.16-1.87 2.82v2.34h3.02C19.98 17.7 21 15.14 21 12.2z" fill="#4285F4"/><path d="M12 21c2.43 0 4.47-.8 5.96-2.17l-2.9-2.34c-.83.56-1.9.89-3.06.89-2.36 0-4.36-1.6-5.07-3.76H3.86v2.4C5.33 19 8.42 21 12 21z" fill="#34A853"/><path d="M6.93 12.62A5.4 5.4 0 0 1 6.66 11c0-.56.1-1.11.27-1.62v-2.4H3.86A9.1 9.1 0 0 0 3 11c0 1.44.35 2.8.86 4.02l3.07-2.4z" fill="#FBBC05"/><path d="M12 5.62c1.32 0 2.5.46 3.43 1.35l2.57-2.57C16.46 2.86 14.42 2 12 2 8.42 2 5.33 4 3.86 6.98l3.07 2.4c.71-2.16 2.71-3.76 5.07-3.76z" fill="#EA4335"/></svg>
+          Continue with Google
+        </button>
+        <button class="social-btn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 12a10 10 0 1 0-11.56 9.87v-6.98H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.78-3.89 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.98A10 10 0 0 0 22 12z" fill="#1877F2"/></svg>
+          Continue with Facebook
+        </button>
+        <button class="social-btn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="20" height="20" rx="5.5" fill="url(#igGrad)"/><circle cx="12" cy="12" r="4.2" stroke="white" stroke-width="1.6" fill="none"/><circle cx="17.1" cy="6.9" r="1.15" fill="white"/><defs><linearGradient id="igGrad" x1="2" y1="22" x2="22" y2="2"><stop offset="0" stop-color="#FED576"/><stop offset="0.35" stop-color="#F47133"/><stop offset="0.65" stop-color="#BC3081"/><stop offset="1" stop-color="#4C63D2"/></linearGradient></defs></svg>
+          Continue with Instagram
+        </button>
+      </div>
+
+      <div class="divider">or sign in with email</div>
+
+      <form onsubmit="return false;">
+        <div class="field">
+          <label for="username">Username</label>
+          <div class="input-wrap">
+            <svg class="icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c1-3.5 4-5.5 7-5.5s6 2 7 5.5" stroke-linecap="round"/></svg>
+            <input id="username" type="text" placeholder="Enter your username or email">
+          </div>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <svg class="icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="10.5" width="14" height="9" rx="2"/><path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7" stroke-linecap="round"/></svg>
+            <input id="password" type="password" placeholder="Enter your password">
+            <svg class="icon-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.6"/></svg>
+          </div>
+        </div>
+
+        <div class="row-between">
+          <span class="remember"><input type="checkbox" id="remember" checked> <label for="remember" style="margin:0;">Remember me</label></span>
+          <a href="#">Forgot password?</a>
+        </div>
+
+        <button class="btn-primary" type="submit">Log In</button>
+      </form>
+
+      <p class="signup-note">Don't have an account? <a href="#">Sign up for free</a></p>
+    </div>
+  </section>
+
+</div>
+
+</body>
+</html>

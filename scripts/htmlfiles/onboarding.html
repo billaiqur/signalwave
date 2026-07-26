@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signalwave — Connect a profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#161A2C;
+    --ink-soft:#6B7086;
+    --paper:#F7F7FB;
+    --card:#FFFFFF;
+    --field-bg:#F5F5F8;
+    --line:#E7E7EE;
+    --indigo:#5B4FD1;
+    --indigo-deep:#4A3FBD;
+    --indigo-wash:#F0EEFC;
+    --positive:#1FA971;
+    --positive-wash:#E9F8F0;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter', sans-serif;
+    background:linear-gradient(165deg, #EEF0FC 0%, #F0EBF8 35%, #F8ECEF 65%, #FCEFE9 100%);
+    color:var(--ink);
+    min-height:100vh;
+  }
+  a{color:inherit; text-decoration:none;}
+  button{font-family:inherit;}
+
+  /* ---------- TOP NAV ---------- */
+  .topnav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px 32px;
+    background:var(--card);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    cursor:pointer;
+  }
+  .brand .logo-mark{
+    width:32px; height:32px;
+    border-radius:9px;
+    background:linear-gradient(135deg,#5A6CE0,#C46F86);
+    display:flex; align-items:center; justify-content:center;
+    flex:0 0 auto;
+  }
+  .brand .wordmark{
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:700;
+    font-size:17px;
+    letter-spacing:-0.01em;
+  }
+  .brand-hint{
+    font-size:11px;
+    color:var(--ink-soft);
+    margin-left:2px;
+    padding:3px 8px;
+    background:var(--field-bg);
+    border-radius:5px;
+    display:none;
+  }
+  .brand:hover .brand-hint{ display:inline-block; }
+
+  .nav-right{
+    display:flex;
+    align-items:center;
+    gap:18px;
+  }
+  .skip-link{
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+  }
+  .avatar{
+    width:34px; height:34px;
+    border-radius:50%;
+    background:var(--indigo-wash);
+    color:var(--indigo);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700;
+    font-size:13px;
+    font-family:'Plus Jakarta Sans', sans-serif;
+  }
+
+  /* ---------- HAMBURGER + DRAWER ---------- */
+  .nav-left{
+    display:flex;
+    align-items:center;
+    gap:16px;
+  }
+  .burger-btn{
+    width:38px; height:38px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:9px;
+    border:1px solid var(--line);
+    background:#fff;
+    cursor:pointer;
+    flex:0 0 auto;
+    transition:border-color 0.15s, background 0.15s;
+  }
+  .burger-btn:hover{ border-color:var(--indigo); background:var(--indigo-wash); }
+  .burger-btn svg{ width:17px; height:17px; }
+
+  .drawer-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(22,26,44,0.32);
+    opacity:0;
+    visibility:hidden;
+    transition:opacity 0.2s;
+    z-index:40;
+  }
+  .drawer-overlay.open{ opacity:1; visibility:visible; }
+
+  .drawer{
+    position:fixed;
+    top:0; left:0;
+    height:100vh;
+    width:270px;
+    background:#fff;
+    border-right:1px solid var(--line);
+    z-index:50;
+    transform:translateX(-100%);
+    transition:transform 0.22s ease;
+    display:flex;
+    flex-direction:column;
+    padding:22px 18px;
+  }
+  .drawer.open{ transform:translateX(0); }
+
+  .drawer-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:28px;
+    padding:0 4px;
+  }
+  .drawer-close{
+    width:32px; height:32px;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:8px;
+    border:none;
+    background:var(--field-bg);
+    cursor:pointer;
+  }
+  .drawer-close svg{ width:14px; height:14px; }
+
+  .drawer-nav{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .drawer-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:11px 12px;
+    border-radius:9px;
+    font-size:14px;
+    font-weight:600;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:background 0.15s, color 0.15s;
+  }
+  .drawer-item:hover{ background:var(--field-bg); color:var(--ink); }
+  .drawer-item.current{
+    background:var(--indigo-wash);
+    color:var(--indigo);
+  }
+  .drawer-item .d-icon{
+    width:19px; height:19px;
+    flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .drawer-item .d-icon svg{ width:100%; height:100%; }
+  .drawer-item .alert-dot{
+    width:7px; height:7px;
+    border-radius:50%;
+    background:#E0524A;
+    margin-left:auto;
+  }
+
+  .drawer-foot{
+    margin-top:auto;
+    border-top:1px solid var(--line);
+    padding-top:14px;
+  }
+  .drawer-foot .drawer-item{ color:var(--ink-soft); }
+
+  /* ---------- WIZARD SHELL ---------- */
+  .wizard-shell{
+    max-width:760px;
+    margin:0 auto;
+    padding:48px 24px 80px;
+  }
+
+  .intro-line{
+    text-align:center;
+    margin-bottom:36px;
+  }
+  .intro-line h1{
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:800;
+    font-size:28px;
+    margin:0 0 8px;
+    letter-spacing:-0.01em;
+  }
+  .intro-line p{
+    font-size:14.5px;
+    color:var(--ink-soft);
+    margin:0;
+  }
+
+  /* stepper */
+  .stepper{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:44px;
+  }
+  .step-item{
+    display:flex;
+    align-items:center;
+  }
+  .step-dot{
+    width:30px; height:30px;
+    border-radius:50%;
+    background:var(--field-bg);
+    color:var(--ink-soft);
+    display:flex; align-items:center; justify-content:center;
+    font-size:12.5px;
+    font-weight:700;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    border:2px solid var(--field-bg);
+    transition:all 0.2s;
+    flex:0 0 auto;
+  }
+  .step-label{
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin-left:8px;
+    white-space:nowrap;
+    transition:color 0.2s;
+  }
+  .step-line{
+    width:44px;
+    height:2px;
+    background:var(--line);
+    margin:0 10px;
+    transition:background 0.2s;
+  }
+  .step-item.done .step-dot{
+    background:var(--indigo);
+    border-color:var(--indigo);
+    color:#fff;
+  }
+  .step-item.done .step-label{ color:var(--ink); }
+  .step-item.active .step-dot{
+    background:#fff;
+    border-color:var(--indigo);
+    color:var(--indigo);
+  }
+  .step-item.active .step-label{ color:var(--ink); }
+  .step-item.done ~ .step-line{ background:var(--indigo); }
+
+  /* card */
+  .step-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:40px;
+  }
+  .step-card h2{
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:700;
+    font-size:20px;
+    margin:0 0 6px;
+  }
+  .step-card .step-sub{
+    font-size:14px;
+    color:var(--ink-soft);
+    margin:0 0 28px;
+  }
+
+  /* Step 1: platform picker */
+  .platform-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    margin-bottom:28px;
+  }
+  .platform-card{
+    border:1.5px solid var(--line);
+    border-radius:12px;
+    padding:22px 18px;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:12px;
+    cursor:pointer;
+    transition:border-color 0.15s, background 0.15s;
+    position:relative;
+  }
+  .platform-card:hover{ border-color:#c9c6ea; }
+  .platform-card.selected{
+    border-color:var(--indigo);
+    background:var(--indigo-wash);
+  }
+  .platform-card .icon-badge{
+    width:42px; height:42px;
+    border-radius:11px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .platform-card .icon-badge.meta{ background:#EDF1FE; }
+  .platform-card .icon-badge.yt{ background:#FDEAEA; }
+  .platform-card .p-name{
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:700;
+    font-size:15px;
+  }
+  .platform-card .p-desc{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    line-height:1.5;
+  }
+  .platform-card .check{
+    position:absolute;
+    top:16px; right:16px;
+    width:20px; height:20px;
+    border-radius:50%;
+    border:1.5px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .platform-card.selected .check{
+    background:var(--indigo);
+    border-color:var(--indigo);
+  }
+
+  /* Step 2: connect */
+  .connect-box{
+    border:1.5px dashed var(--line);
+    border-radius:12px;
+    padding:32px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    gap:14px;
+    margin-bottom:24px;
+  }
+  .connect-box .icon-badge{
+    width:52px; height:52px;
+    border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .connect-box p{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    max-width:380px;
+    margin:0;
+    line-height:1.55;
+  }
+  .btn-connect{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    padding:12px 22px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:#fff;
+    font-size:14px;
+    font-weight:600;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .btn-connect:hover{ border-color:var(--indigo); }
+  .connect-note{
+    font-size:12px;
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    gap:6px;
+    justify-content:center;
+  }
+
+  /* Step 3: select profile */
+  .profile-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:24px;
+  }
+  .profile-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:13px 16px;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    cursor:pointer;
+    transition:border-color 0.15s, background 0.15s;
+  }
+  .profile-row:hover{ border-color:#c9c6ea; }
+  .profile-row.selected{
+    border-color:var(--indigo);
+    background:var(--indigo-wash);
+  }
+  .profile-row .pfp{
+    width:38px; height:38px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#8264C9,#E68A6E);
+    flex:0 0 auto;
+  }
+  .profile-row .pname{
+    font-size:14px;
+    font-weight:600;
+  }
+  .profile-row .phandle{
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+  .profile-row .p-check{
+    margin-left:auto;
+    width:19px; height:19px;
+    border-radius:5px;
+    border:1.5px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    flex:0 0 auto;
+  }
+  .profile-row.selected .p-check{
+    background:var(--indigo);
+    border-color:var(--indigo);
+  }
+
+  /* Step 4: consent */
+  .permission-list{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    margin-bottom:24px;
+  }
+  .permission-item{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+  }
+  .permission-item .p-icon{
+    width:30px; height:30px;
+    border-radius:8px;
+    background:var(--positive-wash);
+    color:var(--positive);
+    display:flex; align-items:center; justify-content:center;
+    flex:0 0 auto;
+  }
+  .permission-item .p-icon.no{
+    background:#FBEAEA;
+    color:#C64545;
+  }
+  .permission-item .p-title{
+    font-size:13.5px;
+    font-weight:600;
+  }
+  .permission-item .p-desc{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    line-height:1.5;
+  }
+  .consent-check{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    padding:16px;
+    background:var(--field-bg);
+    border-radius:10px;
+    margin-bottom:8px;
+  }
+  .consent-check input{
+    margin-top:2px;
+    width:17px; height:17px;
+    accent-color:var(--indigo);
+    flex:0 0 auto;
+  }
+  .consent-check label{
+    font-size:13px;
+    line-height:1.55;
+    color:var(--ink);
+  }
+  .consent-check a{
+    color:var(--indigo);
+    font-weight:600;
+    text-decoration:underline;
+  }
+
+  /* Step 5: success */
+  .success-wrap{
+    text-align:center;
+    padding:16px 0 8px;
+  }
+  .success-icon{
+    width:64px; height:64px;
+    border-radius:50%;
+    background:var(--positive-wash);
+    color:var(--positive);
+    display:flex; align-items:center; justify-content:center;
+    margin:0 auto 20px;
+  }
+  .success-wrap h2{
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:800;
+    font-size:22px;
+    margin:0 0 8px;
+  }
+  .success-wrap p{
+    font-size:14px;
+    color:var(--ink-soft);
+    max-width:380px;
+    margin:0 auto 24px;
+    line-height:1.6;
+  }
+  .success-summary{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:14px 18px;
+    background:var(--field-bg);
+    border-radius:10px;
+    max-width:360px;
+    margin:0 auto 28px;
+    text-align:left;
+  }
+  .success-summary .pfp{
+    width:36px; height:36px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#8264C9,#E68A6E);
+    flex:0 0 auto;
+  }
+  .success-summary .sname{ font-size:13.5px; font-weight:600; }
+  .success-summary .sstatus{ font-size:12px; color:var(--positive); font-weight:600; }
+
+  /* footer buttons */
+  .step-actions{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:8px;
+  }
+  .btn-back{
+    font-size:14px;
+    font-weight:600;
+    color:var(--ink-soft);
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:10px 6px;
+  }
+  .btn-back:hover{ color:var(--ink); }
+  .btn-primary{
+    padding:12px 26px;
+    background:var(--indigo);
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    font-size:14.5px;
+    font-weight:700;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    cursor:pointer;
+    transition:background 0.15s, opacity 0.15s;
+  }
+  .btn-primary:hover{ background:var(--indigo-deep); }
+  .btn-primary:disabled{
+    background:#C7C4E8;
+    cursor:not-allowed;
+  }
+  .btn-primary.full{ width:100%; }
+
+  .step-panel{ display:none; }
+  .step-panel.active{ display:block; }
+
+  @media (max-width: 640px){
+    .wizard-shell{ padding:32px 16px 60px; }
+    .step-card{ padding:26px; }
+    .platform-grid{ grid-template-columns:1fr; }
+    .step-label{ display:none; }
+    .step-line{ width:22px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<div class="topnav">
+  <div class="nav-left">
+    <button class="burger-btn" onclick="openDrawer()" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/></svg>
+    </button>
+    <a class="brand" href="dashboard.html" title="Back to Signalwave home">
+      <span class="logo-mark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 15c2.2 0 3.3-7 5.5-7s3.3 7 5.5 7 3.3-7 5.5-7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="wordmark">Signalwave</span>
+      <span class="brand-hint">Home</span>
+    </a>
+  </div>
+  <div class="nav-right">
+    <div class="avatar">JD</div>
+  </div>
+</div>
+
+<!-- OFF-CANVAS MENU -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<nav class="drawer" id="drawer">
+  <div class="drawer-head">
+    <a class="brand" href="dashboard.html">
+      <span class="logo-mark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 15c2.2 0 3.3-7 5.5-7s3.3 7 5.5 7 3.3-7 5.5-7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span class="wordmark">Signalwave</span>
+    </a>
+    <button class="drawer-close" onclick="closeDrawer()" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+
+  <div class="drawer-nav">
+    <a class="drawer-item" href="dashboard.html">
+      <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></span>
+      Dashboard
+    </a>
+    <a class="drawer-item" href="harassing-comments.html">
+      <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 4 6.5v5c0 5 3.5 7.7 8 9.5 4.5-1.8 8-4.5 8-9.5v-5L12 3z"/><path d="M12 8v4.5M12 15.2v.1" stroke-linecap="round"/></svg></span>
+      Harassing comments
+      <span class="alert-dot"></span>
+    </a>
+    <a class="drawer-item" href="sentiment-analysis.html">
+      <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M20 19v-3" stroke-linecap="round"/></svg></span>
+      Sentiment Analysis
+    </a>
+    <a class="drawer-item" href="settings.html">
+      <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+      Settings
+    </a>
+  </div>
+
+  <div class="drawer-foot">
+    <a class="drawer-item" href="#" onclick="return false;">
+      <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      Log out
+    </a>
+  </div>
+</nav>
+
+<!-- WIZARD -->
+<div class="wizard-shell">
+
+  <div class="intro-line">
+    <h1>Connect a profile to start tracking</h1>
+    <p>Link a Meta or YouTube account and choose what we watch — takes about a minute.</p>
+  </div>
+
+  <div class="stepper" id="stepper">
+    <div class="step-item active" data-step="1">
+      <div class="step-dot">1</div><div class="step-label">Platform</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-item" data-step="2">
+      <div class="step-dot">2</div><div class="step-label">Connect</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-item" data-step="3">
+      <div class="step-dot">3</div><div class="step-label">Select profile</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-item" data-step="4">
+      <div class="step-dot">4</div><div class="step-label">Consent</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-item" data-step="5">
+      <div class="step-dot">5</div><div class="step-label">Done</div>
+    </div>
+  </div>
+
+  <div class="step-card">
+
+    <!-- STEP 1: PLATFORM -->
+    <div class="step-panel active" data-panel="1">
+      <h2>Choose a platform</h2>
+      <p class="step-sub">Pick where the profile you want to track lives. You can connect more later.</p>
+
+      <div class="platform-grid">
+        <div class="platform-card" data-platform="meta" onclick="selectPlatform('meta')">
+          <div class="check"></div>
+          <div class="icon-badge meta">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="12" r="6" stroke="#5A6CE0" stroke-width="1.8"/><circle cx="15" cy="12" r="6" stroke="#C46F86" stroke-width="1.8"/></svg>
+          </div>
+          <div class="p-name">Meta</div>
+          <div class="p-desc">Track comments on Facebook Pages and Instagram profiles.</div>
+        </div>
+        <div class="platform-card" data-platform="youtube" onclick="selectPlatform('youtube')">
+          <div class="check"></div>
+          <div class="icon-badge yt">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="4" stroke="#E0524A" stroke-width="1.8"/><path d="M10.5 9.5v5l4.5-2.5-4.5-2.5z" fill="#E0524A"/></svg>
+          </div>
+          <div class="p-name">YouTube</div>
+          <div class="p-desc">Track comments on videos from a channel you manage.</div>
+        </div>
+      </div>
+
+      <div class="step-actions">
+        <span></span>
+        <button class="btn-primary" id="btn-step1" disabled onclick="goToStep(2)">Continue</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: CONNECT -->
+    <div class="step-panel" data-panel="2">
+      <h2 id="connect-title">Connect your account</h2>
+      <p class="step-sub">We'll open a secure window on their site — you approve access there, not here.</p>
+
+      <div class="connect-box">
+        <div class="icon-badge" id="connect-icon-wrap" style="background:#EDF1FE;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" id="connect-icon"><circle cx="9" cy="12" r="6" stroke="#5A6CE0" stroke-width="1.8"/><circle cx="15" cy="12" r="6" stroke="#C46F86" stroke-width="1.8"/></svg>
+        </div>
+        <p id="connect-copy">You'll be asked to log in and approve read-only access to your Pages and Instagram profiles.</p>
+        <button class="btn-connect" id="btn-connect" onclick="doConnect()">
+          <span id="connect-btn-label">Continue with Meta</span>
+        </button>
+        <div class="connect-note" id="connect-status"></div>
+      </div>
+
+      <div class="step-actions">
+        <button class="btn-back" onclick="goToStep(1)">Back</button>
+        <button class="btn-primary" id="btn-step2" disabled onclick="goToStep(3)">Continue</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: SELECT PROFILE -->
+    <div class="step-panel" data-panel="3">
+      <h2>Select what to track</h2>
+      <p class="step-sub">We found these profiles connected to your account. Choose one to get started.</p>
+
+      <div class="profile-list" id="profile-list">
+        <div class="profile-row" onclick="selectProfile(this)">
+          <div class="pfp"></div>
+          <div>
+            <div class="pname">Nova Studio</div>
+            <div class="phandle">@novastudio · Page</div>
+          </div>
+          <div class="p-check"></div>
+        </div>
+        <div class="profile-row" onclick="selectProfile(this)">
+          <div class="pfp"></div>
+          <div>
+            <div class="pname">Lena Cruz</div>
+            <div class="phandle">@lenacruz · Instagram profile</div>
+          </div>
+          <div class="p-check"></div>
+        </div>
+        <div class="profile-row" onclick="selectProfile(this)">
+          <div class="pfp"></div>
+          <div>
+            <div class="pname">Marcus Field</div>
+            <div class="phandle">@marcusfield · Instagram profile</div>
+          </div>
+          <div class="p-check"></div>
+        </div>
+      </div>
+
+      <div class="step-actions">
+        <button class="btn-back" onclick="goToStep(2)">Back</button>
+        <button class="btn-primary" id="btn-step3" disabled onclick="goToStep(4)">Continue</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: CONSENT -->
+    <div class="step-panel" data-panel="4">
+      <h2>Review access &amp; give consent</h2>
+      <p class="step-sub">Here's exactly what Signalwave will and won't do with <span id="consent-name">this profile</span>.</p>
+
+      <div class="permission-list">
+        <div class="permission-item">
+          <div class="p-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div class="p-title">Read public comments</div>
+            <div class="p-desc">We collect public comments and replies on posts so we can tag their sentiment.</div>
+          </div>
+        </div>
+        <div class="permission-item">
+          <div class="p-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div class="p-title">Read basic profile info</div>
+            <div class="p-desc">Name, handle, and profile photo, so we can label the feed correctly.</div>
+          </div>
+        </div>
+        <div class="permission-item">
+          <div class="p-icon no">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12" stroke-linecap="round"/></svg>
+          </div>
+          <div>
+            <div class="p-title">Never posts or replies on your behalf</div>
+            <div class="p-desc">Signalwave can't publish, comment, or message as you — read-only, always.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="consent-check">
+        <input type="checkbox" id="consentBox" onchange="toggleConsent()">
+        <label for="consentBox">I agree to let Signalwave collect public comments from the selected profile, in line with the platform's terms and Signalwave's <a href="privacy-policy.html" target="_blank">Privacy Policy</a>.</label>
+      </div>
+
+      <div class="consent-check" id="harassRow" style="background:var(--indigo-wash);">
+        <input type="checkbox" id="harassCheckbox">
+        <label for="harassCheckbox"><strong>Also enable harassing comment tracking</strong> (recommended) — we'll flag abusive comments, hide or delete them where possible, and let you report the profiles behind them. You can turn this on later from the dashboard instead.</label>
+      </div>
+
+      <div class="consent-check" id="sentimentRow" style="background:var(--indigo-wash);">
+        <input type="checkbox" id="sentimentCheckbox">
+        <label for="sentimentCheckbox"><strong>Also enable sentiment analysis</strong> (recommended) — we'll score how your audience feels about your content, tuned to your niche with a couple of quick questions. You can turn this on later from the dashboard instead.</label>
+      </div>
+
+      <div class="step-actions">
+        <button class="btn-back" onclick="goToStep(3)">Back</button>
+        <button class="btn-primary" id="btn-step4" disabled onclick="finishSetup()">Confirm &amp; start tracking</button>
+      </div>
+    </div>
+
+    <!-- STEP 5: SUCCESS -->
+    <div class="step-panel" data-panel="5">
+      <div class="success-wrap">
+        <div class="success-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h2>You're all set</h2>
+        <p>We're pulling in comments now — sentiment tags usually show up within a couple of minutes.</p>
+        <div class="success-summary">
+          <div class="pfp"></div>
+          <div>
+            <div class="sname" id="success-name">Lena Cruz</div>
+            <div class="sstatus">● Now tracking</div>
+          </div>
+        </div>
+        <a class="btn-primary full" style="display:block; text-align:center; text-decoration:none;" href="dashboard.html">Go to dashboard</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function openDrawer(){
+    document.getElementById('drawer').classList.add('open');
+    document.getElementById('drawerOverlay').classList.add('open');
+  }
+  function closeDrawer(){
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('drawerOverlay').classList.remove('open');
+  }
+  document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeDrawer(); });
+
+  let selectedPlatform = null;
+
+  function setStepUI(step){
+    document.querySelectorAll('.step-item').forEach(item=>{
+      const s = parseInt(item.dataset.step);
+      item.classList.remove('active','done');
+      if(s < step) item.classList.add('done');
+      if(s === step) item.classList.add('active');
+    });
+    document.querySelectorAll('.step-panel').forEach(p=>{
+      p.classList.toggle('active', parseInt(p.dataset.panel) === step);
+    });
+  }
+
+  function goToStep(step){ setStepUI(step); }
+
+  function selectPlatform(p){
+    selectedPlatform = p;
+    document.querySelectorAll('.platform-card').forEach(c=>{
+      c.classList.toggle('selected', c.dataset.platform === p);
+    });
+    document.getElementById('btn-step1').disabled = false;
+
+    const isMeta = p === 'meta';
+    document.getElementById('connect-title').textContent = isMeta ? 'Connect your Meta account' : 'Connect your YouTube account';
+    document.getElementById('connect-icon-wrap').style.background = isMeta ? '#EDF1FE' : '#FDEAEA';
+    document.getElementById('connect-icon').innerHTML = isMeta
+      ? '<circle cx="9" cy="12" r="6" stroke="#5A6CE0" stroke-width="1.8"/><circle cx="15" cy="12" r="6" stroke="#C46F86" stroke-width="1.8"/>'
+      : '<rect x="2" y="5" width="20" height="14" rx="4" stroke="#E0524A" stroke-width="1.8"/><path d="M10.5 9.5v5l4.5-2.5-4.5-2.5z" fill="#E0524A"/>';
+    document.getElementById('connect-copy').textContent = isMeta
+      ? "You'll be asked to log in and approve read-only access to your Pages and Instagram profiles."
+      : "You'll be asked to sign in with Google and approve read-only access to your channel's comments.";
+    document.getElementById('connect-btn-label').textContent = isMeta ? 'Continue with Meta' : 'Continue with Google';
+    document.getElementById('connect-status').textContent = '';
+    document.getElementById('btn-step2').disabled = true;
+  }
+
+  function doConnect(){
+    document.getElementById('connect-status').innerHTML = '&#10003; Connected — we found 3 profiles you manage';
+    document.getElementById('connect-status').style.color = '#1FA971';
+    document.getElementById('connect-status').style.fontWeight = '600';
+    document.getElementById('btn-step2').disabled = false;
+  }
+
+  function selectProfile(row){
+    document.querySelectorAll('.profile-row').forEach(r=>r.classList.remove('selected'));
+    row.classList.add('selected');
+    document.getElementById('btn-step3').disabled = false;
+    const name = row.querySelector('.pname').textContent;
+    document.getElementById('consent-name').textContent = name;
+    document.getElementById('success-name').textContent = name;
+  }
+
+  function toggleConsent(){
+    document.getElementById('btn-step4').disabled = !document.getElementById('consentBox').checked;
+  }
+
+  function finishSetup(){
+    goToStep(5);
+  }
+
+  // Deep link support: onboarding.html?step=4&harass=1
+  (function(){
+    const params = new URLSearchParams(window.location.search);
+    if(params.get('step') === '4'){
+      goToStep(4);
+      document.querySelectorAll('.step-item').forEach(item=>{
+        const s = parseInt(item.dataset.step);
+        if(s < 4) item.classList.add('done');
+      });
+      if(params.get('harass') === '1'){
+        const box = document.getElementById('harassCheckbox');
+        box.checked = true;
+        const row = document.getElementById('harassRow');
+        row.style.outline = '2px solid var(--indigo)';
+        setTimeout(()=>{ row.scrollIntoView({behavior:'smooth', block:'center'}); }, 50);
+      }
+      if(params.get('sentiment') === '1'){
+        const box2 = document.getElementById('sentimentCheckbox');
+        box2.checked = true;
+        const row2 = document.getElementById('sentimentRow');
+        row2.style.outline = '2px solid var(--indigo)';
+        setTimeout(()=>{ row2.scrollIntoView({behavior:'smooth', block:'center'}); }, 50);
+      }
+    }
+  })();
+</script>
+
+</body>
+</html>

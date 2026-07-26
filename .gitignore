@@ -1,0 +1,33 @@
+# ── Secrets — NEVER commit these ──────────────────────────────
+.env
+*.env
+client_secret.json
+token.json
+
+# ── Python ────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Virtual environments ───────────────────────────────────────
+venv/
+.venv/
+env/
+
+# ── Data / logs ───────────────────────────────────────────────
+data/
+logs/
+*.log
+
+# ── OS / editor ───────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
