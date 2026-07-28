@@ -47,6 +47,34 @@ class ActionType(str, enum.Enum):
 
 # ── Models ────────────────────────────────────────────────────
 
+class User(Base):
+    """
+    A Signalwave account holder — someone who logs in to the product.
+    Can sign up via Google, Facebook, or email+password.
+    Separate from 'Client' (which is the business entity that owns social channels).
+    """
+    __tablename__ = "users"
+
+    id           = Column(Integer, primary_key=True, autoincrement=True)
+    email        = Column(String, unique=True, nullable=False)
+    name         = Column(String)
+    avatar_url   = Column(String)
+
+    # Social login IDs — null if not connected via that provider
+    google_id    = Column(String, unique=True, nullable=True)
+    facebook_id  = Column(String, unique=True, nullable=True)
+
+    # Email+password login — null for social-only accounts
+    hashed_password = Column(Text, nullable=True)
+
+    is_active    = Column(Boolean, default=True)
+    created_at   = Column(DateTime, default=datetime.utcnow)
+    last_login_at = Column(DateTime, nullable=True)
+
+    # Link to the client record (created automatically on first login)
+    client_id    = Column(Integer, ForeignKey("clients.id"), nullable=True)
+
+
 class Client(Base):
     """
     A business or individual who has signed up to use the harassment tracker.

@@ -33,6 +33,7 @@ from src.db.models import (
 )
 from src.platforms import get_platform_client
 from src.tracker import run_tracker
+from api.auth import router as auth_router
 
 load_dotenv()
 
@@ -47,11 +48,13 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Restrict in production
+    allow_origins=["*"],  # Restrict in production to your GitHub Pages URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth_router)
 
 
 @app.on_event("startup")
@@ -286,3 +289,72 @@ def trigger_tracker():
     except Exception as e:
         logger.error(f"Tracker run failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Keywords ──────────────────────────────────────────────────
+from src.db.models import HarassmentKeyword
+from src.detection.detector import reload_keywords
+
+
+@app.get("/api/keywords")
+def list_keywords(
+    language: Optional[str] = Query(None),
+    active_only: bool = Query(True),
+    db: Session = Depends(get_db),
+):
+    q = db.query(HarassmentKeyword)
+    if language:
+        q = q.filter(HarassmentKeyword.language == language)
+    if active_only:
+        q = q.filter(HarassmentKeyword.is_active == True)
+    rows = q.order_by(HarassmentKeyword.language, HarassmentKeyword.keyword).all()
+    return [
+        {
+            "id": r.id, "keyword": r.keyword, "language": r.language,
+            "category": r.category, "is_active": r.is_active, "notes": r.notes,
+        }
+        for r in rows
+    ]
+
+
+class AddKeywordRequest(BaseModel):
+    keyword: str
+    language: str = "universal"
+    category: str = "general"
+    notes: str = ""
+
+
+@app.post("/api/keywords")
+def add_keyword(req: AddKeywordRequest, db: Session = Depends(get_db)):
+    existing = db.query(HarassmentKeyword).filter_by(
+        keyword=req.keyword, language=req.language
+    ).first()
+    if existing:
+        if not existing.is_active:
+            existing.is_active = True
+            db.commit()
+            reload_keywords()
+            return {"message": "Keyword re-enabled", "id": existing.id}
+        raise HTTPException(status_code=409, detail="Keyword already exists")
+
+    row = HarassmentKeyword(
+        keyword=req.keyword, language=req.language,
+        category=req.category, notes=req.notes,
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    reload_keywords()
+    return {"message": "Keyword added", "id": row.id}
+
+
+@app.delete("/api/keywords/{keyword_id}")
+def delete_keyword(keyword_id: int, db: Session = Depends(get_db)):
+    row = db.get(HarassmentKeyword, keyword_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Keyword not found")
+    row.is_active = False
+    db.commit()
+    reload_keywords()
+    return {"message": "Keyword disabled", "id": keyword_id}
+

@@ -395,15 +395,15 @@
       <p class="sub">Enter your details to see today's sentiment feed</p>
 
       <div class="social-col">
-        <button class="social-btn" type="button">
+        <button class="social-btn" type="button" onclick="socialLogin('google')">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 12.2c0-.68-.06-1.33-.17-1.96H12v3.71h5.02c-.22 1.17-.88 2.16-1.87 2.82v2.34h3.02C19.98 17.7 21 15.14 21 12.2z" fill="#4285F4"/><path d="M12 21c2.43 0 4.47-.8 5.96-2.17l-2.9-2.34c-.83.56-1.9.89-3.06.89-2.36 0-4.36-1.6-5.07-3.76H3.86v2.4C5.33 19 8.42 21 12 21z" fill="#34A853"/><path d="M6.93 12.62A5.4 5.4 0 0 1 6.66 11c0-.56.1-1.11.27-1.62v-2.4H3.86A9.1 9.1 0 0 0 3 11c0 1.44.35 2.8.86 4.02l3.07-2.4z" fill="#FBBC05"/><path d="M12 5.62c1.32 0 2.5.46 3.43 1.35l2.57-2.57C16.46 2.86 14.42 2 12 2 8.42 2 5.33 4 3.86 6.98l3.07 2.4c.71-2.16 2.71-3.76 5.07-3.76z" fill="#EA4335"/></svg>
           Continue with Google
         </button>
-        <button class="social-btn" type="button">
+        <button class="social-btn" type="button" onclick="socialLogin('facebook')">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 12a10 10 0 1 0-11.56 9.87v-6.98H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.78-3.89 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.98A10 10 0 0 0 22 12z" fill="#1877F2"/></svg>
           Continue with Facebook
         </button>
-        <button class="social-btn" type="button">
+        <button class="social-btn" type="button" onclick="socialLogin('facebook')">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="20" height="20" rx="5.5" fill="url(#igGrad)"/><circle cx="12" cy="12" r="4.2" stroke="white" stroke-width="1.6" fill="none"/><circle cx="17.1" cy="6.9" r="1.15" fill="white"/><defs><linearGradient id="igGrad" x1="2" y1="22" x2="22" y2="2"><stop offset="0" stop-color="#FED576"/><stop offset="0.35" stop-color="#F47133"/><stop offset="0.65" stop-color="#BC3081"/><stop offset="1" stop-color="#4C63D2"/></linearGradient></defs></svg>
           Continue with Instagram
         </button>
@@ -411,20 +411,23 @@
 
       <div class="divider">or sign in with email</div>
 
-      <form onsubmit="window.location.href='onboarding.html'; return false;">
+      <!-- Error message area -->
+      <div id="auth-error" style="display:none; background:#FBEAEA; color:#C64545; border-radius:8px; padding:10px 14px; font-size:13.5px; margin-bottom:16px;"></div>
+
+      <form id="login-form" onsubmit="emailLogin(event)">
         <div class="field">
-          <label for="username">Username</label>
+          <label for="username">Email</label>
           <div class="input-wrap">
             <svg class="icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c1-3.5 4-5.5 7-5.5s6 2 7 5.5" stroke-linecap="round"/></svg>
-            <input id="username" type="text" placeholder="Enter your username or email">
+            <input id="username" type="email" placeholder="Enter your email" required>
           </div>
         </div>
         <div class="field">
           <label for="password">Password</label>
           <div class="input-wrap">
             <svg class="icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="10.5" width="14" height="9" rx="2"/><path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7" stroke-linecap="round"/></svg>
-            <input id="password" type="password" placeholder="Enter your password">
-            <svg class="icon-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.6"/></svg>
+            <input id="password" type="password" placeholder="Enter your password" required>
+            <svg class="icon-right" onclick="togglePw()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.6"/></svg>
           </div>
         </div>
 
@@ -433,10 +436,10 @@
           <a href="#">Forgot password?</a>
         </div>
 
-        <button class="btn-primary" type="submit">Log In</button>
+        <button class="btn-primary" type="submit" id="login-btn">Log In</button>
       </form>
 
-      <p class="signup-note">Don't have an account? <a href="#">Sign up for free</a></p>
+      <p class="signup-note">Don't have an account? <a href="#" onclick="showSignup(event)">Sign up for free</a></p>
       <p style="text-align:center; margin-top:20px; font-size:12.5px; color:var(--ink-soft);">
         <a href="privacy-policy.html" style="color:var(--ink-soft); text-decoration:underline;">Privacy Policy</a>
         &nbsp;·&nbsp;
@@ -447,5 +450,120 @@
 
 </div>
 
+<script>
+  // ── Configuration ──────────────────────────────────────────
+  // In production this points to your Render/Railway backend URL.
+  // During local dev it points to localhost:8001.
+  const API = localStorage.getItem('sw_api_base') || 'http://localhost:8001';
+
+  // ── On page load: if a token was returned via URL param, store it ──
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+      localStorage.setItem('sw_token', token);
+      // Clean token from URL then redirect
+      window.history.replaceState({}, '', window.location.pathname);
+      window.location.href = 'dashboard.html';
+      return;
+    }
+    // If already logged in, skip straight to dashboard
+    if (localStorage.getItem('sw_token')) {
+      window.location.href = 'dashboard.html';
+    }
+  })();
+
+  // ── Social login: redirect browser to backend OAuth start ──
+  function socialLogin(provider) {
+    window.location.href = `${API}/auth/${provider}/start`;
+  }
+
+  // ── Email / password login ─────────────────────────────────
+  async function emailLogin(e) {
+    e.preventDefault();
+    const btn = document.getElementById('login-btn');
+    const errEl = document.getElementById('auth-error');
+    errEl.style.display = 'none';
+    btn.textContent = 'Signing in…';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${API}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: document.getElementById('username').value,
+          password: document.getElementById('password').value,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showError(data.detail || 'Login failed');
+        return;
+      }
+      localStorage.setItem('sw_token', data.token);
+      window.location.href = 'dashboard.html';
+    } catch (err) {
+      showError('Could not reach the server. Is the API running?');
+    } finally {
+      btn.textContent = 'Log In';
+      btn.disabled = false;
+    }
+  }
+
+  // ── Sign-up flow (swap form to register mode) ─────────────
+  function showSignup(e) {
+    e.preventDefault();
+    document.querySelector('.login-card h2').textContent = 'Create your account';
+    document.querySelector('.login-card .sub').textContent = 'Free forever for personal use.';
+    document.getElementById('login-btn').textContent = 'Create account';
+    document.getElementById('login-form').onsubmit = emailRegister;
+    document.querySelector('.signup-note').innerHTML =
+      'Already have an account? <a href="#" onclick="location.reload()">Log in</a>';
+  }
+
+  async function emailRegister(e) {
+    e.preventDefault();
+    const btn = document.getElementById('login-btn');
+    const errEl = document.getElementById('auth-error');
+    errEl.style.display = 'none';
+    btn.textContent = 'Creating account…';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${API}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: document.getElementById('username').value,
+          password: document.getElementById('password').value,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showError(data.detail || 'Registration failed');
+        return;
+      }
+      localStorage.setItem('sw_token', data.token);
+      window.location.href = 'onboarding.html';
+    } catch (err) {
+      showError('Could not reach the server. Is the API running?');
+    } finally {
+      btn.textContent = 'Create account';
+      btn.disabled = false;
+    }
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('auth-error');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function togglePw() {
+    const inp = document.getElementById('password');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+</script>
 </body>
 </html>

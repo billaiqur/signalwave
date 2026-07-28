@@ -864,6 +864,37 @@
 </div>
 
 <script>
+  // ── Config ────────────────────────────────────────────────
+  const API = localStorage.getItem('sw_api_base') || 'http://localhost:8001';
+  const token = localStorage.getItem('sw_token');
+
+  // Auth guard — redirect to login if no token
+  if (!token) { window.location.href = 'index.html'; }
+
+  // ── On load: check for OAuth callback params ──────────────
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+
+    // Fresh token from login/register redirect
+    if (params.get('token')) {
+      localStorage.setItem('sw_token', params.get('token'));
+    }
+
+    // Coming back from account-connection OAuth callback
+    const step = params.get('step');
+    const profilesRaw = params.get('profiles');
+    if (step === '3' && profilesRaw) {
+      try {
+        const profiles = JSON.parse(decodeURIComponent(profilesRaw));
+        populateProfileList(profiles);
+        goToStep(3);
+      } catch(e) { console.error('profile parse error', e); }
+    }
+
+    // Clean URL params
+    window.history.replaceState({}, '', window.location.pathname);
+  })();
+
   function openDrawer(){
     document.getElementById('drawer').classList.add('open');
     document.getElementById('drawerOverlay').classList.add('open');
@@ -875,6 +906,7 @@
   document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeDrawer(); });
 
   let selectedPlatform = null;
+  let selectedProfile = null;
 
   function setStepUI(step){
     document.querySelectorAll('.step-item').forEach(item=>{
@@ -911,27 +943,113 @@
     document.getElementById('btn-step2').disabled = true;
   }
 
-  function doConnect(){
-    document.getElementById('connect-status').innerHTML = '&#10003; Connected — we found 3 profiles you manage';
-    document.getElementById('connect-status').style.color = '#1FA971';
-    document.getElementById('connect-status').style.fontWeight = '600';
-    document.getElementById('btn-step2').disabled = false;
+  // ── Step 2: real OAuth account connection ─────────────────
+  async function doConnect() {
+    const statusEl = document.getElementById('connect-status');
+    statusEl.textContent = 'Opening authorisation window…';
+    statusEl.style.color = '';
+
+    const endpoint = selectedPlatform === 'meta'
+      ? `${API}/auth/meta/connect/start`
+      : `${API}/auth/youtube/connect/start`;
+
+    try {
+      const res = await fetch(endpoint, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('sw_token')}` },
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        statusEl.textContent = '✗ ' + (err.detail || 'Connection failed');
+        statusEl.style.color = '#E0524A';
+        return;
+      }
+      const { redirect_url } = await res.json();
+      // Redirect this tab to the provider's consent screen.
+      // The backend callback will bring the user back to onboarding.html?step=3&profiles=...
+      window.location.href = redirect_url;
+    } catch(err) {
+      statusEl.textContent = '✗ Could not reach the server';
+      statusEl.style.color = '#E0524A';
+    }
   }
 
-  function selectProfile(row){
-    document.querySelectorAll('.profile-row').forEach(r=>r.classList.remove('selected'));
+  // ── Step 3: populate profile list from OAuth response ────
+  function populateProfileList(profiles) {
+    const list = document.getElementById('profile-list');
+    list.innerHTML = '';
+    profiles.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'profile-row';
+      row.dataset.profile = JSON.stringify(p);
+      row.onclick = () => selectProfileRow(row, p);
+
+      const platformBadge = {
+        facebook: '🔵 Page',
+        instagram: '🟣 Instagram',
+        youtube: '🔴 Channel',
+      }[p.platform] || p.platform;
+
+      row.innerHTML = `
+        <div class="pfp" style="background:linear-gradient(135deg,#8264C9,#E68A6E);
+          display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;">
+          ${(p.name || '?')[0].toUpperCase()}
+        </div>
+        <div>
+          <div class="pname">${p.name}</div>
+          <div class="phandle">${p.handle || ''} · ${platformBadge}</div>
+        </div>
+        <div class="p-check"></div>`;
+      list.appendChild(row);
+    });
+
+    if (profiles.length === 0) {
+      list.innerHTML = '<p style="color:var(--ink-soft);font-size:14px;text-align:center;padding:20px 0;">No profiles found. Make sure you manage at least one Page or channel.</p>';
+    }
+  }
+
+  function selectProfileRow(row, profile) {
+    document.querySelectorAll('.profile-row').forEach(r => r.classList.remove('selected'));
     row.classList.add('selected');
+    selectedProfile = profile;
     document.getElementById('btn-step3').disabled = false;
-    const name = row.querySelector('.pname').textContent;
-    document.getElementById('consent-name').textContent = name;
-    document.getElementById('success-name').textContent = name;
+    document.getElementById('consent-name').textContent = profile.name;
+    document.getElementById('success-name').textContent = profile.name;
+  }
+
+  // Keep legacy stub for old inline onclick handlers
+  function selectProfile(row){
+    const profile = row.dataset.profile ? JSON.parse(row.dataset.profile) : {
+      name: row.querySelector('.pname').textContent,
+      platform: 'facebook',
+    };
+    selectProfileRow(row, profile);
   }
 
   function toggleConsent(){
     document.getElementById('btn-step4').disabled = !document.getElementById('consentBox').checked;
   }
 
-  function finishSetup(){
+  // ── Step 5: save selected profile to backend ──────────────
+  async function finishSetup(){
+    if (!selectedProfile) { goToStep(5); return; }
+
+    try {
+      await fetch(`${API}/auth/connect/save-profile`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('sw_token')}`,
+        },
+        body: JSON.stringify({
+          platform:      selectedProfile.platform,
+          channel_id:    selectedProfile.id,
+          channel_name:  selectedProfile.name,
+          access_token:  selectedProfile.access_token || '',
+          handle:        selectedProfile.handle || '',
+        }),
+      });
+    } catch(e) { console.warn('save-profile failed (non-fatal)', e); }
+
     goToStep(5);
   }
 

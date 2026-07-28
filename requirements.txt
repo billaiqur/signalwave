@@ -4,6 +4,7 @@ psycopg2-binary==2.9.10
 sqlalchemy==2.0.35
 alembic==1.13.3
 pydantic==2.9.2
+pydantic[email]
 pydantic-settings==2.5.2
 python-dotenv==1.0.1
 httpx==0.27.2
