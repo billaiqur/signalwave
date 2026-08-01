@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signalwave — Data Deletion Request</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#161A2C;
+    --ink-soft:#6B7086;
+    --line:#E7E7EE;
+    --indigo:#5B4FD1;
+    --indigo-wash:#F0EEFC;
+    --field-bg:#F5F5F8;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Inter', sans-serif;
+    background:linear-gradient(165deg, #EEF0FC 0%, #F0EBF8 35%, #F8ECEF 65%, #FCEFE9 100%);
+    color:var(--ink);
+  }
+  .brand-bar{
+    display:flex; align-items:center; gap:10px;
+    max-width:800px; margin:0 auto; padding:32px 24px 0;
+    font-family:'Plus Jakarta Sans', sans-serif;
+  }
+  .brand-bar .logo-mark{
+    width:30px; height:30px; border-radius:8px;
+    background:linear-gradient(135deg,#5A6CE0,#C46F86);
+  }
+  .brand-bar .wordmark{ font-weight:700; font-size:16px; }
+
+  .wrap{ max-width:800px; margin:0 auto; padding:16px 24px 100px; }
+  .entity-note{
+    font-size:13px; color:var(--ink-soft); margin:0 0 20px;
+  }
+
+  .card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:40px;
+  }
+  h1{ font-family:'Plus Jakarta Sans', sans-serif; font-weight:800; font-size:26px; margin:0 0 6px; }
+  .updated{ font-size:13px; color:var(--ink-soft); margin:0 0 28px; }
+  h2{ font-family:'Plus Jakarta Sans', sans-serif; font-size:16px; margin:26px 0 8px; }
+  p, li{ font-size:14.5px; line-height:1.7; color:var(--ink); }
+  a{ color:var(--indigo); }
+
+  .steps{ counter-reset: step; list-style:none; padding:0; margin:12px 0 0; }
+  .steps li{
+    counter-increment: step;
+    position:relative;
+    padding:14px 16px 14px 46px;
+    background:var(--field-bg);
+    border-radius:10px;
+    margin-bottom:10px;
+  }
+  .steps li::before{
+    content: counter(step);
+    position:absolute;
+    left:14px; top:14px;
+    width:22px; height:22px;
+    border-radius:50%;
+    background:var(--indigo);
+    color:#fff;
+    font-size:12px;
+    font-weight:700;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  .form-card{
+    background:var(--indigo-wash);
+    border:1px solid #DAD4F5;
+    border-radius:14px;
+    padding:26px;
+    margin-top:28px;
+  }
+  .form-card h2{ margin-top:0; }
+  .field{ margin-bottom:14px; }
+  .field label{ display:block; font-size:13px; font-weight:600; margin-bottom:6px; }
+  .field input, .field select, .field textarea{
+    width:100%;
+    padding:11px 13px;
+    border-radius:9px;
+    border:1px solid var(--line);
+    background:#fff;
+    font-size:14px;
+    font-family:'Inter', sans-serif;
+    color:var(--ink);
+  }
+  .field textarea{ min-height:80px; resize:vertical; }
+  .btn-primary{
+    padding:12px 22px;
+    background:var(--indigo);
+    color:#fff;
+    border:none;
+    border-radius:9px;
+    font-size:14px;
+    font-weight:700;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    cursor:pointer;
+  }
+  .btn-primary:hover{ background:#4A3FBD; }
+  .form-note{ font-size:12.5px; color:var(--ink-soft); margin-top:10px; }
+</style>
+</head>
+<body>
+
+  <div class="brand-bar">
+    <a href="index.html" style="display:flex; align-items:center; gap:10px;">
+      <span class="logo-mark"></span>
+      <span class="wordmark">Signalwave</span>
+    </a>
+  </div>
+
+  <div class="wrap">
+    <p class="entity-note"><strong>Signalwave</strong> is a product and service operated by <strong>Blackfin cybers</strong>, referred to as "we," "us," and "our" below.</p>
+
+    <div class="card">
+      <h1>Data Deletion Request</h1>
+      <p class="updated">Last updated: July 26, 2026</p>
+
+      <p>If you've connected a Facebook Page, Instagram profile, or YouTube channel to Signalwave — or if you're someone whose public comment was collected because you commented on a connected profile — you can request that we delete your data at any time.</p>
+
+      <h2>What gets deleted</h2>
+      <p>Once a deletion request is confirmed, we remove:</p>
+      <ul>
+        <li>Any comments, commenter names, and post details collected from your connected profile(s)</li>
+        <li>Sentiment scores, harassment flags, and moderation history tied to that data</li>
+        <li>Access tokens allowing Signalwave to read further data from your account</li>
+      </ul>
+      <p>We may retain minimal records where required by law (for example, financial or fraud-prevention records), as described in our <a href="privacy-policy.html">Privacy Policy</a>.</p>
+
+      <h2>How long we keep data, and when it's deleted</h2>
+      <ul>
+        <li><strong>If your account goes idle for a year</strong> — we'll email you asking whether you'd like to keep your data. If you reply, we act on your instructions. If we don't hear back, we delete your data 30 days after that follow-up.</li>
+        <li><strong>If your account stays active</strong> — we don't delete anything automatically. Instead, you can clean up older data yourself at any time, choosing to remove content older than 2 years, 5 years, or 7 years from your dashboard settings.</li>
+        <li><strong>If you close your account</strong> — we delete everything within 24 hours of confirmed closure. This deletion is permanent and cannot be undone or recovered.</li>
+      </ul>
+
+      <h2>How to request deletion right now</h2>
+      <p>If you're logged in, the fastest option is <a href="settings.html">Settings → Data &amp; retention</a>, where you can clean up old data yourself or close your account outright (deleted within 24 hours, permanently). Otherwise:</p>
+      <ol class="steps">
+        <li><strong>Disconnect your account (fastest option).</strong> From your Signalwave dashboard, go to Settings → Connected Accounts and click "Disconnect" next to the relevant profile. This immediately revokes our access and stops any further data collection.</li>
+        <li><strong>Submit a deletion request.</strong> Use the form below, or email us directly at <a href="mailto:Laiqur@blackfin-cybers.io">Laiqur@blackfin-cybers.io</a> with the subject line "Data Deletion Request" and the profile name or email associated with your account.</li>
+        <li><strong>Confirmation.</strong> We'll confirm your request by email and complete the deletion within 30 days, in line with our <a href="privacy-policy.html#inforetain">data retention policy</a>.</li>
+      </ol>
+
+      <div class="form-card">
+        <h2>Request form</h2>
+        <form onsubmit="event.preventDefault(); document.getElementById('formConfirm').style.display='block'; this.style.display='none';">
+          <div class="field">
+            <label for="name">Your name</label>
+            <input id="name" type="text" placeholder="Full name" required>
+          </div>
+          <div class="field">
+            <label for="email">Email address</label>
+            <input id="email" type="email" placeholder="you@example.com" required>
+          </div>
+          <div class="field">
+            <label for="platform">Which platform is this about?</label>
+            <select id="platform">
+              <option>Facebook</option>
+              <option>Instagram</option>
+              <option>YouTube</option>
+              <option>Not sure / other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="handle">Profile name or handle</label>
+            <input id="handle" type="text" placeholder="@yourhandle or Page name">
+          </div>
+          <div class="field">
+            <label for="details">Additional details (optional)</label>
+            <textarea id="details" placeholder="Anything else that helps us find your data"></textarea>
+          </div>
+          <button class="btn-primary" type="submit">Submit request</button>
+          <p class="form-note">This form is a wireframe placeholder — wire it to your backend or an email service (e.g. Formspree) before going live, so submissions actually reach you.</p>
+        </form>
+        <div id="formConfirm" style="display:none;">
+          <p><strong>Request received.</strong> We'll email you a confirmation and complete the deletion within 30 days.</p>
+        </div>
+      </div>
+
+      <h2>Questions?</h2>
+      <p>Contact us at <a href="mailto:Laiqur@blackfin-cybers.io">Laiqur@blackfin-cybers.io</a> or by post at Blackfin cybers, 11 Trent Cl, Werribee 3030, Australia.</p>
+    </div>
+  </div>
+
+</body>
+</html>

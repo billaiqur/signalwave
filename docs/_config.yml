@@ -1,0 +1,10 @@
+# GitHub Pages Configuration for Signalwave
+# Explicitly serve index.html as the default page
+
+theme: jekyll-default
+plugins:
+  - jekyll-feed
+
+# Ensure GitHub Pages serves index.html directly
+# (without processing through Jekyll if not needed)
+markdown: kramdown

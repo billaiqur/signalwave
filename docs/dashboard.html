@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signalwave — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#161A2C;
+    --ink-soft:#6B7086;
+    --card:#FFFFFF;
+    --field-bg:#F5F5F8;
+    --line:#E7E7EE;
+    --indigo:#5B4FD1;
+    --indigo-deep:#4A3FBD;
+    --indigo-wash:#F0EEFC;
+    --positive:#1FA971;
+    --positive-wash:#E9F8F0;
+    --negative:#E0524A;
+    --negative-wash:#FBEAEA;
+    --neutral:#C98A1F;
+    --neutral-wash:#FBF1E1;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter', sans-serif;
+    background:linear-gradient(165deg, #EEF0FC 0%, #F0EBF8 35%, #F8ECEF 65%, #FCEFE9 100%);
+    color:var(--ink);
+    min-height:100vh;
+  }
+  a{color:inherit; text-decoration:none;}
+  button{font-family:inherit;}
+
+  /* ---------- TOP NAV ---------- */
+  .topnav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px 32px;
+    background:var(--card);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-left{ display:flex; align-items:center; gap:16px; }
+  .burger-btn{
+    width:38px; height:38px;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:9px;
+    border:1px solid var(--line);
+    background:#fff;
+    cursor:pointer;
+    flex:0 0 auto;
+    transition:border-color 0.15s, background 0.15s;
+  }
+  .burger-btn:hover{ border-color:var(--indigo); background:var(--indigo-wash); }
+  .burger-btn svg{ width:17px; height:17px; }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand .logo-mark{
+    width:32px; height:32px;
+    border-radius:9px;
+    background:linear-gradient(135deg,#5A6CE0,#C46F86);
+    display:flex; align-items:center; justify-content:center;
+    flex:0 0 auto;
+  }
+  .brand .wordmark{
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:700;
+    font-size:17px;
+    letter-spacing:-0.01em;
+  }
+  .nav-right{ display:flex; align-items:center; gap:18px; }
+  .avatar{
+    width:34px; height:34px;
+    border-radius:50%;
+    background:var(--indigo-wash);
+    color:var(--indigo);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700;
+    font-size:13px;
+    font-family:'Plus Jakarta Sans', sans-serif;
+  }
+
+  /* ---------- DRAWER ---------- */
+  .drawer-overlay{
+    position:fixed; inset:0;
+    background:rgba(22,26,44,0.32);
+    opacity:0; visibility:hidden;
+    transition:opacity 0.2s;
+    z-index:40;
+  }
+  .drawer-overlay.open{ opacity:1; visibility:visible; }
+  .drawer{
+    position:fixed; top:0; left:0; height:100vh; width:270px;
+    background:#fff;
+    border-right:1px solid var(--line);
+    z-index:50;
+    transform:translateX(-100%);
+    transition:transform 0.22s ease;
+    display:flex; flex-direction:column;
+    padding:22px 18px;
+  }
+  .drawer.open{ transform:translateX(0); }
+  .drawer-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:28px; padding:0 4px;
+  }
+  .drawer-close{
+    width:32px; height:32px;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:8px; border:none;
+    background:var(--field-bg); cursor:pointer;
+  }
+  .drawer-close svg{ width:14px; height:14px; }
+  .drawer-nav{ display:flex; flex-direction:column; gap:4px; }
+  .drawer-item{
+    display:flex; align-items:center; gap:12px;
+    padding:11px 12px; border-radius:9px;
+    font-size:14px; font-weight:600; color:var(--ink-soft);
+    cursor:pointer;
+    transition:background 0.15s, color 0.15s;
+  }
+  .drawer-item:hover{ background:var(--field-bg); color:var(--ink); }
+  .drawer-item.current{ background:var(--indigo-wash); color:var(--indigo); }
+  .drawer-item .d-icon{ width:19px; height:19px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; }
+  .drawer-item .d-icon svg{ width:100%; height:100%; }
+  .drawer-item .alert-dot{ width:7px; height:7px; border-radius:50%; background:var(--negative); margin-left:auto; }
+  .drawer-foot{ margin-top:auto; border-top:1px solid var(--line); padding-top:14px; }
+  .drawer-foot .drawer-item{ color:var(--ink-soft); }
+
+  /* ---------- LAYOUT ---------- */
+  .page{
+    max-width:1120px;
+    margin:0 auto;
+    padding:36px 24px 80px;
+  }
+  .page-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    margin-bottom:28px;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .page-head h1{
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:800;
+    font-size:26px;
+    margin:0 0 4px;
+  }
+  .page-head p{
+    font-size:14px;
+    color:var(--ink-soft);
+    margin:0;
+  }
+  select.select-pill{
+    padding:10px 14px;
+    border-radius:9px;
+    border:1px solid var(--line);
+    background:#fff;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--ink);
+    cursor:pointer;
+  }
+
+  .demo-toggle{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:6px 6px;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:20px;
+    margin-bottom:24px;
+    font-size:12.5px;
+  }
+  .demo-toggle button{
+    border:none; background:none; cursor:pointer;
+    padding:6px 12px; border-radius:14px;
+    font-size:12.5px; font-weight:600; color:var(--ink-soft);
+  }
+  .demo-toggle button.active{ background:var(--indigo); color:#fff; }
+
+  .stat-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:16px;
+    margin-bottom:24px;
+  }
+  .stat-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:20px;
+  }
+  .stat-card .s-icon{
+    width:34px; height:34px;
+    border-radius:9px;
+    background:var(--indigo-wash);
+    color:var(--indigo);
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:14px;
+  }
+  .stat-card .s-num{
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:800;
+    font-size:24px;
+  }
+  .stat-card .s-label{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+  .stat-card .s-delta{
+    font-size:12px;
+    font-weight:700;
+    margin-top:10px;
+  }
+  .s-delta.up{ color:var(--positive); }
+  .s-delta.down{ color:var(--negative); }
+
+  .chart-row{
+    display:grid;
+    grid-template-columns:1.1fr 1fr;
+    gap:16px;
+    margin-bottom:24px;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:22px;
+  }
+  .card-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:18px;
+  }
+  .card-head h3{
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:700;
+    font-size:15px;
+    margin:0;
+  }
+  .card-head .legend{
+    display:flex; gap:12px;
+    font-size:11.5px;
+    color:var(--ink-soft);
+  }
+  .legend span{ display:inline-flex; align-items:center; gap:5px; }
+  .legend .dot{ width:8px; height:8px; border-radius:50%; }
+
+  .bar-chart{
+    display:flex;
+    align-items:flex-end;
+    gap:6px;
+    height:150px;
+  }
+  .bar-chart .bar{
+    flex:1;
+    background:linear-gradient(180deg,#8264C9,#5B4FD1);
+    border-radius:5px 5px 0 0;
+    min-height:4px;
+  }
+  .bar-chart-labels{
+    display:flex;
+    gap:6px;
+    margin-top:8px;
+  }
+  .bar-chart-labels span{
+    flex:1;
+    text-align:center;
+    font-size:10px;
+    color:var(--ink-soft);
+  }
+
+  .promo-card{
+    background:var(--indigo-wash);
+    border:1px solid #DAD4F5;
+    border-radius:14px;
+    padding:26px;
+    display:flex;
+    align-items:center;
+    gap:20px;
+    margin-bottom:24px;
+  }
+  .promo-card .p-icon{
+    width:48px; height:48px;
+    border-radius:12px;
+    background:#fff;
+    color:var(--indigo);
+    display:flex; align-items:center; justify-content:center;
+    flex:0 0 auto;
+  }
+  .promo-card .p-body{ flex:1; }
+  .promo-card h3{
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:700;
+    font-size:16px;
+    margin:0 0 4px;
+  }
+  .promo-card p{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    margin:0;
+    line-height:1.5;
+  }
+  .btn-primary{
+    padding:11px 20px;
+    background:var(--indigo);
+    color:#fff;
+    border:none;
+    border-radius:9px;
+    font-size:13.5px;
+    font-weight:700;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    cursor:pointer;
+    white-space:nowrap;
+    display:inline-block;
+  }
+  .btn-primary:hover{ background:var(--indigo-deep); }
+  .btn-secondary{
+    padding:10px 18px;
+    background:#fff;
+    color:var(--ink);
+    border:1px solid var(--line);
+    border-radius:9px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .btn-secondary:hover{ border-color:var(--indigo); }
+
+  .mini-stat-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+  }
+  .mini-stat{
+    background:var(--field-bg);
+    border-radius:10px;
+    padding:14px;
+  }
+  .mini-stat .m-num{
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:800;
+    font-size:19px;
+  }
+  .mini-stat .m-label{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+  .mini-stat.deleted .m-num{ color:var(--negative); }
+  .mini-stat.hidden .m-num{ color:var(--neutral); }
+  .mini-stat.reported .m-num{ color:var(--indigo); }
+
+  .sentiment-row{
+    display:flex;
+    align-items:center;
+    gap:24px;
+  }
+  .sentiment-score{
+    text-align:center;
+    flex:0 0 auto;
+  }
+  .sentiment-score .sc-num{
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:800;
+    font-size:38px;
+    color:var(--positive);
+  }
+  .sentiment-score .sc-label{
+    font-size:11.5px;
+    color:var(--ink-soft);
+  }
+  .sentiment-bar{
+    flex:1;
+  }
+  .seg-bar{
+    display:flex;
+    height:10px;
+    border-radius:6px;
+    overflow:hidden;
+    margin-bottom:8px;
+  }
+  .seg-bar .seg.pos{ background:var(--positive); }
+  .seg-bar .seg.neu{ background:var(--neutral); }
+  .seg-bar .seg.neg{ background:var(--negative); }
+  .seg-legend{
+    display:flex; gap:16px;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .seg-legend span{ display:inline-flex; align-items:center; gap:5px; }
+  .seg-legend .dot{ width:8px; height:8px; border-radius:50%; }
+
+  .two-col{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+  }
+
+  [data-state]{ display:none; }
+  [data-state].show{ display:block; }
+  [data-state].show.flex{ display:flex; }
+
+  @media (max-width: 900px){
+    .stat-grid{ grid-template-columns:repeat(2,1fr); }
+    .chart-row{ grid-template-columns:1fr; }
+    .mini-stat-grid{ grid-template-columns:repeat(2,1fr); }
+    .two-col{ grid-template-columns:1fr; }
+    .promo-card{ flex-direction:column; align-items:flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="nav-left">
+    <button class="burger-btn" onclick="openDrawer()" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/></svg>
+    </button>
+    <a class="brand" href="dashboard.html" title="Back to Signalwave home">
+      <span class="logo-mark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 15c2.2 0 3.3-7 5.5-7s3.3 7 5.5 7 3.3-7 5.5-7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span class="wordmark">Signalwave</span>
+    </a>
+  </div>
+  <div class="nav-right">
+    <div class="avatar">JD</div>
+  </div>
+</div>
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<nav class="drawer" id="drawer">
+  <div class="drawer-head">
+    <a class="brand" href="dashboard.html">
+      <span class="logo-mark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 15c2.2 0 3.3-7 5.5-7s3.3 7 5.5 7 3.3-7 5.5-7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span class="wordmark">Signalwave</span>
+    </a>
+    <button class="drawer-close" onclick="closeDrawer()" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="drawer-nav">
+    <a class="drawer-item current" href="dashboard.html">
+      <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></span>
+      Dashboard
+    </a>
+    <a class="drawer-item" href="harassing-comments.html">
+      <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 4 6.5v5c0 5 3.5 7.7 8 9.5 4.5-1.8 8-4.5 8-9.5v-5L12 3z"/><path d="M12 8v4.5M12 15.2v.1" stroke-linecap="round"/></svg></span>
+      Harassing comments
+      <span class="alert-dot"></span>
+    </a>
+    <a class="drawer-item" href="sentiment-analysis.html">
+      <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M20 19v-3" stroke-linecap="round"/></svg></span>
+      Sentiment Analysis
+    </a>
+    <a class="drawer-item" href="settings.html">
+      <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+      Settings
+    </a>
+  </div>
+  <div class="drawer-foot">
+    <a class="drawer-item" href="#" onclick="return false;">
+      <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      Log out
+    </a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-head">
+    <div>
+      <h1>Dashboard</h1>
+      <p>Here's how <strong>Lena Cruz</strong> is performing across tracked channels.</p>
+    </div>
+    <select class="select-pill">
+      <option>Lena Cruz — Instagram</option>
+      <option>Nova Studio — Facebook</option>
+      <option>Marcus Field — Instagram</option>
+    </select>
+  </div>
+
+  <div class="demo-toggle">
+    <span style="padding-left:8px; color:var(--ink-soft); font-weight:600;">Preview:</span>
+    <button class="active" id="btn-new" onclick="setDemoState('new')">New profile</button>
+    <button id="btn-full" onclick="setDemoState('full')">Fully set up</button>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="s-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16" stroke-linecap="round"/></svg></div>
+      <div class="s-num">128</div>
+      <div class="s-label">Total posts</div>
+      <div class="s-delta up">▲ 8 this month</div>
+    </div>
+    <div class="stat-card">
+      <div class="s-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.8 8.6c0 4.4-8.8 9.9-8.8 9.9S3.2 13 3.2 8.6a4.8 4.8 0 0 1 8.8-2.7A4.8 4.8 0 0 1 20.8 8.6z"/></svg></div>
+      <div class="s-num">482K</div>
+      <div class="s-label">Total likes</div>
+      <div class="s-delta up">▲ 12.4% vs last month</div>
+    </div>
+    <div class="stat-card">
+      <div class="s-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12c0 4.4-4 8-9 8-1.5 0-2.9-.3-4.1-.9L3 20l1.1-3.8C3.4 14.9 3 13.5 3 12c0-4.4 4-8 9-8s9 3.6 9 8z"/></svg></div>
+      <div class="s-num">36.2K</div>
+      <div class="s-label">Total comments</div>
+      <div class="s-delta up">▲ 5.1% vs last month</div>
+    </div>
+    <div class="stat-card">
+      <div class="s-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l5-5.5 4 3L21 6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="s-num">7.4%</div>
+      <div class="s-label">Engagement rate</div>
+      <div class="s-delta down">▼ 0.6% vs last month</div>
+    </div>
+  </div>
+
+  <div class="chart-row">
+    <div class="card">
+      <div class="card-head">
+        <h3>Comments over the last 14 days</h3>
+      </div>
+      <div class="bar-chart">
+        <div class="bar" style="height:38%"></div>
+        <div class="bar" style="height:52%"></div>
+        <div class="bar" style="height:44%"></div>
+        <div class="bar" style="height:61%"></div>
+        <div class="bar" style="height:58%"></div>
+        <div class="bar" style="height:70%"></div>
+        <div class="bar" style="height:66%"></div>
+        <div class="bar" style="height:80%"></div>
+        <div class="bar" style="height:74%"></div>
+        <div class="bar" style="height:90%"></div>
+        <div class="bar" style="height:84%"></div>
+        <div class="bar" style="height:96%"></div>
+        <div class="bar" style="height:88%"></div>
+        <div class="bar" style="height:100%"></div>
+      </div>
+      <div class="bar-chart-labels">
+        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span>
+        <span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3>Likes vs. comments</h3>
+        <div class="legend">
+          <span><span class="dot" style="background:#5B4FD1;"></span>Likes</span>
+          <span><span class="dot" style="background:#E68A6E;"></span>Comments</span>
+        </div>
+      </div>
+      <svg viewBox="0 0 340 150" width="100%" height="150">
+        <line x1="0" y1="30" x2="340" y2="30" stroke="#E7E7EE" stroke-width="1"/>
+        <line x1="0" y1="75" x2="340" y2="75" stroke="#E7E7EE" stroke-width="1"/>
+        <line x1="0" y1="120" x2="340" y2="120" stroke="#E7E7EE" stroke-width="1"/>
+        <polyline points="0,95 30,88 60,92 90,70 120,74 150,55 180,60 210,40 240,45 270,28 300,32 340,18"
+          fill="none" stroke="#5B4FD1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="0,120 30,115 60,118 90,105 120,108 150,98 180,102 210,88 240,92 270,80 300,85 340,72"
+          fill="none" stroke="#E68A6E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- HARASSING COMMENTS SECTION -->
+  <div data-state="new" class="show">
+    <div class="promo-card">
+      <div class="p-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 4 6.5v5c0 5 3.5 7.7 8 9.5 4.5-1.8 8-4.5 8-9.5v-5L12 3z"/><path d="M12 8v4.5M12 15.2v.1" stroke-linecap="round"/></svg>
+      </div>
+      <div class="p-body">
+        <h3>Harassing comment tracking is off</h3>
+        <p>Turn it on and we'll automatically flag abusive comments, hide or delete them where we can, and let you report the profiles behind them.</p>
+      </div>
+      <a class="btn-primary" href="onboarding.html?step=4&harass=1">Enable tracking</a>
+    </div>
+  </div>
+
+  <div data-state="full" class="card" style="margin-bottom:24px;">
+    <div class="card-head">
+      <h3>Harassing comments</h3>
+      <a href="harassing-comments.html" class="btn-secondary">View all</a>
+    </div>
+    <div class="mini-stat-grid">
+      <div class="mini-stat">
+        <div class="m-num">86</div>
+        <div class="m-label">Flagged</div>
+      </div>
+      <div class="mini-stat deleted">
+        <div class="m-num">52</div>
+        <div class="m-label">Deleted</div>
+      </div>
+      <div class="mini-stat hidden">
+        <div class="m-num">21</div>
+        <div class="m-label">Hidden</div>
+      </div>
+      <div class="mini-stat reported">
+        <div class="m-num">9</div>
+        <div class="m-label">Profiles reported</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SENTIMENT SECTION -->
+  <div data-state="new" class="show promo-card" style="background:var(--positive-wash); border-color:#CDEBDA;">
+    <div class="p-icon" style="color:var(--positive);">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M20 19v-3" stroke-linecap="round"/></svg>
+    </div>
+    <div class="p-body">
+      <h3>Set up sentiment analysis</h3>
+      <p>Answer a couple of questions about your content so we can score sentiment accurately for your niche.</p>
+    </div>
+    <a class="btn-primary" href="sentiment-analysis.html">Set up now</a>
+  </div>
+
+  <div data-state="full" class="card">
+    <div class="card-head">
+      <h3>Sentiment snapshot</h3>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <select class="select-pill" style="padding:7px 10px; font-size:12.5px;">
+          <option>All content</option>
+          <option>Comedy</option>
+          <option>Travel</option>
+        </select>
+        <a href="sentiment-analysis.html" class="btn-secondary">View full report</a>
+      </div>
+    </div>
+    <div class="sentiment-row">
+      <div class="sentiment-score">
+        <div class="sc-num">82</div>
+        <div class="sc-label">Positive score</div>
+      </div>
+      <div class="sentiment-bar">
+        <div class="seg-bar">
+          <div class="seg pos" style="width:82%;"></div>
+          <div class="seg neu" style="width:12%;"></div>
+          <div class="seg neg" style="width:6%;"></div>
+        </div>
+        <div class="seg-legend">
+          <span><span class="dot" style="background:var(--positive);"></span>Positive 82%</span>
+          <span><span class="dot" style="background:var(--neutral);"></span>Neutral 12%</span>
+          <span><span class="dot" style="background:var(--negative);"></span>Negative 6%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function openDrawer(){
+    document.getElementById('drawer').classList.add('open');
+    document.getElementById('drawerOverlay').classList.add('open');
+  }
+  function closeDrawer(){
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('drawerOverlay').classList.remove('open');
+  }
+  document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeDrawer(); });
+
+  function setDemoState(state){
+    document.querySelectorAll('[data-state]').forEach(el=>{
+      el.classList.toggle('show', el.dataset.state === state);
+    });
+    document.getElementById('btn-new').classList.toggle('active', state === 'new');
+    document.getElementById('btn-full').classList.toggle('active', state === 'full');
+  }
+</script>
+
+</body>
+</html>

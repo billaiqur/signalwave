@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signalwave — Harassing comments</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#161A2C;
+    --ink-soft:#6B7086;
+    --card:#FFFFFF;
+    --field-bg:#F5F5F8;
+    --line:#E7E7EE;
+    --indigo:#5B4FD1;
+    --indigo-deep:#4A3FBD;
+    --indigo-wash:#F0EEFC;
+    --positive:#1FA971;
+    --positive-wash:#E9F8F0;
+    --negative:#E0524A;
+    --negative-wash:#FBEAEA;
+    --neutral:#C98A1F;
+    --neutral-wash:#FBF1E1;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter', sans-serif;
+    background:linear-gradient(165deg, #EEF0FC 0%, #F0EBF8 35%, #F8ECEF 65%, #FCEFE9 100%);
+    color:var(--ink);
+    min-height:100vh;
+  }
+  a{color:inherit; text-decoration:none;}
+  button{font-family:inherit;}
+
+  .topnav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 32px;
+    background:var(--card);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-left{ display:flex; align-items:center; gap:16px; }
+  .burger-btn{
+    width:38px; height:38px;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:9px; border:1px solid var(--line);
+    background:#fff; cursor:pointer; flex:0 0 auto;
+    transition:border-color 0.15s, background 0.15s;
+  }
+  .burger-btn:hover{ border-color:var(--indigo); background:var(--indigo-wash); }
+  .burger-btn svg{ width:17px; height:17px; }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand .logo-mark{
+    width:32px; height:32px; border-radius:9px;
+    background:linear-gradient(135deg,#5A6CE0,#C46F86);
+    display:flex; align-items:center; justify-content:center; flex:0 0 auto;
+  }
+  .brand .wordmark{ font-family:'Plus Jakarta Sans', sans-serif; font-weight:700; font-size:17px; letter-spacing:-0.01em; }
+  .nav-right{ display:flex; align-items:center; gap:18px; }
+  .avatar{
+    width:34px; height:34px; border-radius:50%;
+    background:var(--indigo-wash); color:var(--indigo);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:13px; font-family:'Plus Jakarta Sans', sans-serif;
+  }
+
+  .drawer-overlay{
+    position:fixed; inset:0; background:rgba(22,26,44,0.32);
+    opacity:0; visibility:hidden; transition:opacity 0.2s; z-index:40;
+  }
+  .drawer-overlay.open{ opacity:1; visibility:visible; }
+  .drawer{
+    position:fixed; top:0; left:0; height:100vh; width:270px;
+    background:#fff; border-right:1px solid var(--line); z-index:50;
+    transform:translateX(-100%); transition:transform 0.22s ease;
+    display:flex; flex-direction:column; padding:22px 18px;
+  }
+  .drawer.open{ transform:translateX(0); }
+  .drawer-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; padding:0 4px; }
+  .drawer-close{
+    width:32px; height:32px; display:flex; align-items:center; justify-content:center;
+    border-radius:8px; border:none; background:var(--field-bg); cursor:pointer;
+  }
+  .drawer-close svg{ width:14px; height:14px; }
+  .drawer-nav{ display:flex; flex-direction:column; gap:4px; }
+  .drawer-item{
+    display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:9px;
+    font-size:14px; font-weight:600; color:var(--ink-soft); cursor:pointer;
+    transition:background 0.15s, color 0.15s;
+  }
+  .drawer-item:hover{ background:var(--field-bg); color:var(--ink); }
+  .drawer-item.current{ background:var(--indigo-wash); color:var(--indigo); }
+  .drawer-item .d-icon{ width:19px; height:19px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; }
+  .drawer-item .d-icon svg{ width:100%; height:100%; }
+  .drawer-item .alert-dot{ width:7px; height:7px; border-radius:50%; background:var(--negative); margin-left:auto; }
+  .drawer-foot{ margin-top:auto; border-top:1px solid var(--line); padding-top:14px; }
+  .drawer-foot .drawer-item{ color:var(--ink-soft); }
+
+  .page{ max-width:1120px; margin:0 auto; padding:36px 24px 80px; }
+  .page-head{ margin-bottom:22px; }
+  .page-head h1{ font-family:'Plus Jakarta Sans', sans-serif; font-weight:800; font-size:26px; margin:0 0 4px; }
+  .page-head p{ font-size:14px; color:var(--ink-soft); margin:0; }
+
+  .stat-strip{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+    margin-bottom:22px;
+  }
+  .strip-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:16px 18px;
+  }
+  .strip-card .st-num{ font-family:'Plus Jakarta Sans', sans-serif; font-weight:800; font-size:22px; }
+  .strip-card .st-label{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
+  .strip-card.deleted .st-num{ color:var(--negative); }
+  .strip-card.hidden .st-num{ color:var(--neutral); }
+  .strip-card.reported .st-num{ color:var(--indigo); }
+
+  .filter-bar{
+    display:flex;
+    gap:10px;
+    margin-bottom:20px;
+    flex-wrap:wrap;
+  }
+  .filter-bar select, .filter-bar input{
+    padding:10px 14px;
+    border-radius:9px;
+    border:1px solid var(--line);
+    background:#fff;
+    font-size:13px;
+    font-weight:500;
+    color:var(--ink);
+  }
+  .filter-bar input{ flex:1; min-width:200px; }
+  .filter-bar select{ font-weight:600; cursor:pointer; }
+
+  .comment-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    margin-bottom:12px;
+    overflow:hidden;
+  }
+  .comment-row{
+    display:flex;
+    align-items:flex-start;
+    gap:14px;
+    padding:16px 18px;
+  }
+  .comment-row .pfp{
+    width:38px; height:38px; border-radius:50%;
+    background:linear-gradient(135deg,#8264C9,#E68A6E);
+    flex:0 0 auto;
+  }
+  .comment-body{ flex:1; min-width:0; }
+  .comment-top{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:4px;
+    flex-wrap:wrap;
+  }
+  .comment-top .pname{ font-size:13.5px; font-weight:700; }
+  .comment-top .phandle{ font-size:12.5px; color:var(--ink-soft); }
+  .comment-top .platform-chip{
+    font-size:10.5px;
+    font-weight:600;
+    padding:2px 7px;
+    border-radius:5px;
+    background:var(--field-bg);
+    color:var(--ink-soft);
+  }
+  .comment-text{
+    font-size:13.5px;
+    color:var(--ink);
+    line-height:1.5;
+    font-style:italic;
+    margin-bottom:6px;
+  }
+  .comment-meta{
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .comment-actions{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:8px;
+    flex:0 0 auto;
+  }
+  .status-badge{
+    font-size:11px;
+    font-weight:700;
+    padding:4px 10px;
+    border-radius:6px;
+    white-space:nowrap;
+  }
+  .status-badge.pending{ background:var(--field-bg); color:var(--ink-soft); }
+  .status-badge.deleted{ background:var(--negative-wash); color:var(--negative); }
+  .status-badge.hidden{ background:var(--neutral-wash); color:var(--neutral); }
+  .status-badge.reported{ background:var(--indigo-wash); color:var(--indigo); }
+
+  .action-btns{ display:flex; gap:6px; }
+  .icon-btn{
+    width:30px; height:30px;
+    border-radius:7px;
+    border:1px solid var(--line);
+    background:#fff;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    color:var(--ink-soft);
+  }
+  .icon-btn:hover{ border-color:var(--indigo); color:var(--indigo); }
+  .icon-btn svg{ width:14px; height:14px; }
+
+  .history-toggle{
+    font-size:12px;
+    font-weight:600;
+    color:var(--indigo);
+    cursor:pointer;
+    background:none;
+    border:none;
+    padding:0;
+  }
+
+  .history-panel{
+    display:none;
+    background:var(--field-bg);
+    padding:16px 18px 16px 68px;
+    border-top:1px solid var(--line);
+  }
+  .history-panel.open{ display:block; }
+  .history-item{
+    display:flex;
+    gap:10px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+  }
+  .history-item:last-child{ margin-bottom:0; }
+  .history-item .h-dot{
+    width:6px; height:6px; border-radius:50%;
+    background:var(--indigo);
+    margin-top:5px;
+    flex:0 0 auto;
+  }
+  .history-item strong{ color:var(--ink); }
+
+  @media (max-width: 900px){
+    .stat-strip{ grid-template-columns:repeat(2,1fr); }
+    .comment-row{ flex-direction:column; }
+    .comment-actions{ align-items:flex-start; flex-direction:row; }
+    .history-panel{ padding-left:18px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="nav-left">
+    <button class="burger-btn" onclick="openDrawer()" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/></svg>
+    </button>
+    <a class="brand" href="dashboard.html" title="Back to Signalwave home">
+      <span class="logo-mark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 15c2.2 0 3.3-7 5.5-7s3.3 7 5.5 7 3.3-7 5.5-7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span class="wordmark">Signalwave</span>
+    </a>
+  </div>
+  <div class="nav-right">
+    <div class="avatar">JD</div>
+  </div>
+</div>
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<nav class="drawer" id="drawer">
+  <div class="drawer-head">
+    <a class="brand" href="dashboard.html">
+      <span class="logo-mark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 15c2.2 0 3.3-7 5.5-7s3.3 7 5.5 7 3.3-7 5.5-7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span class="wordmark">Signalwave</span>
+    </a>
+    <button class="drawer-close" onclick="closeDrawer()" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="drawer-nav">
+    <a class="drawer-item" href="dashboard.html">
+      <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></span>
+      Dashboard
+    </a>
+    <a class="drawer-item current" href="harassing-comments.html">
+      <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 4 6.5v5c0 5 3.5 7.7 8 9.5 4.5-1.8 8-4.5 8-9.5v-5L12 3z"/><path d="M12 8v4.5M12 15.2v.1" stroke-linecap="round"/></svg></span>
+      Harassing comments
+    </a>
+    <a class="drawer-item" href="sentiment-analysis.html">
+      <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M20 19v-3" stroke-linecap="round"/></svg></span>
+      Sentiment Analysis
+    </a>
+    <a class="drawer-item" href="settings.html">
+      <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+      Settings
+    </a>
+  </div>
+  <div class="drawer-foot">
+    <a class="drawer-item" href="#" onclick="return false;">
+      <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      Log out
+    </a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-head">
+    <h1>Harassing comments</h1>
+    <p>Comments we've flagged, hidden, or removed to keep your community safe.</p>
+  </div>
+
+  <div class="stat-strip">
+    <div class="strip-card">
+      <div class="st-num">86</div>
+      <div class="st-label">Total flagged</div>
+    </div>
+    <div class="strip-card deleted">
+      <div class="st-num">52</div>
+      <div class="st-label">Deleted</div>
+    </div>
+    <div class="strip-card hidden">
+      <div class="st-num">21</div>
+      <div class="st-label">Hidden</div>
+    </div>
+    <div class="strip-card reported">
+      <div class="st-num">9</div>
+      <div class="st-label">Profiles reported</div>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <input type="text" placeholder="Search by keyword or profile">
+    <select>
+      <option>All platforms</option>
+      <option>Instagram</option>
+      <option>Facebook</option>
+      <option>YouTube</option>
+    </select>
+    <select>
+      <option>All statuses</option>
+      <option>Pending review</option>
+      <option>Deleted</option>
+      <option>Hidden</option>
+      <option>Reported</option>
+    </select>
+    <select>
+      <option>Last 30 days</option>
+      <option>Last 7 days</option>
+      <option>Last 90 days</option>
+      <option>All time</option>
+    </select>
+  </div>
+
+  <!-- Comment 1: pending, needs action -->
+  <div class="comment-card">
+    <div class="comment-row">
+      <div class="pfp"></div>
+      <div class="comment-body">
+        <div class="comment-top">
+          <span class="pname">grunwald_speaks</span>
+          <span class="phandle">@grunwald_speaks</span>
+          <span class="platform-chip">Instagram</span>
+        </div>
+        <div class="comment-text">"You're honestly disgusting, hope you lose everything you built."</div>
+        <div class="comment-meta">Flagged automatically · toxicity score 0.94 · Jul 22, 2026, 6:41pm</div>
+      </div>
+      <div class="comment-actions">
+        <span class="status-badge pending">Pending review</span>
+        <div class="action-btns">
+          <button class="icon-btn" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2l1-12" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button class="icon-btn" title="Hide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><path d="M4 4l16 16" stroke-linecap="round"/></svg></button>
+          <button class="icon-btn" title="Report profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 3v18M5 4h11l-2.5 4L16 12H5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comment 2: deleted, with history -->
+  <div class="comment-card">
+    <div class="comment-row">
+      <div class="pfp"></div>
+      <div class="comment-body">
+        <div class="comment-top">
+          <span class="pname">coldtakez99</span>
+          <span class="phandle">@coldtakez99</span>
+          <span class="platform-chip">Facebook</span>
+        </div>
+        <div class="comment-text">"Nobody asked, go back to whatever hole you crawled out of."</div>
+        <div class="comment-meta">Deleted by Signalwave · Jul 21, 2026, 11:05am</div>
+      </div>
+      <div class="comment-actions">
+        <span class="status-badge deleted">Deleted</span>
+        <button class="history-toggle" onclick="toggleHistory(this)">View history ▾</button>
+      </div>
+    </div>
+    <div class="history-panel">
+      <div class="history-item"><span class="h-dot"></span><span><strong>Flagged automatically</strong> — toxicity score 0.89 — Jul 21, 10:58am</span></div>
+      <div class="history-item"><span class="h-dot"></span><span><strong>Deleted by Signalwave</strong> — Jul 21, 11:05am</span></div>
+    </div>
+  </div>
+
+  <!-- Comment 3: hidden + reported, with history -->
+  <div class="comment-card">
+    <div class="comment-row">
+      <div class="pfp"></div>
+      <div class="comment-body">
+        <div class="comment-top">
+          <span class="pname">Marlon Reyes</span>
+          <span class="phandle">@notmarlon_ok</span>
+          <span class="platform-chip">Instagram</span>
+        </div>
+        <div class="comment-text">"You should be ashamed to even post your face."</div>
+        <div class="comment-meta">Hidden and reported · Jul 19, 2026, 3:22pm</div>
+      </div>
+      <div class="comment-actions">
+        <span class="status-badge reported">Reported</span>
+        <button class="history-toggle" onclick="toggleHistory(this)">View history ▾</button>
+      </div>
+    </div>
+    <div class="history-panel">
+      <div class="history-item"><span class="h-dot"></span><span><strong>Flagged automatically</strong> — toxicity score 0.91 — Jul 19, 3:10pm</span></div>
+      <div class="history-item"><span class="h-dot"></span><span><strong>Hidden by Signalwave</strong> — Jul 19, 3:12pm</span></div>
+      <div class="history-item"><span class="h-dot"></span><span><strong>Reported to Instagram</strong> — Jul 19, 3:22pm — Case #INS-88213</span></div>
+    </div>
+  </div>
+
+  <!-- Comment 4: hidden only -->
+  <div class="comment-card">
+    <div class="comment-row">
+      <div class="pfp"></div>
+      <div class="comment-body">
+        <div class="comment-top">
+          <span class="pname">tb_unfiltered</span>
+          <span class="phandle">@tb_unfiltered</span>
+          <span class="platform-chip">YouTube</span>
+        </div>
+        <div class="comment-text">"This is why nobody takes you seriously, clown."</div>
+        <div class="comment-meta">Hidden by Signalwave · Jul 17, 2026, 9:47am</div>
+      </div>
+      <div class="comment-actions">
+        <span class="status-badge hidden">Hidden</span>
+        <button class="history-toggle" onclick="toggleHistory(this)">View history ▾</button>
+      </div>
+    </div>
+    <div class="history-panel">
+      <div class="history-item"><span class="h-dot"></span><span><strong>Flagged automatically</strong> — toxicity score 0.78 — Jul 17, 9:44am</span></div>
+      <div class="history-item"><span class="h-dot"></span><span><strong>Hidden by Signalwave</strong> — Jul 17, 9:47am</span></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function openDrawer(){
+    document.getElementById('drawer').classList.add('open');
+    document.getElementById('drawerOverlay').classList.add('open');
+  }
+  function closeDrawer(){
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('drawerOverlay').classList.remove('open');
+  }
+  document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeDrawer(); });
+
+  function toggleHistory(btn){
+    const panel = btn.closest('.comment-card').querySelector('.history-panel');
+    const open = panel.classList.toggle('open');
+    btn.textContent = open ? 'Hide history ▴' : 'View history ▾';
+  }
+</script>
+
+</body>
+</html>
