@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signalwave — Settings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#161A2C;
+    --ink-soft:#6B7086;
+    --card:#FFFFFF;
+    --field-bg:#F5F5F8;
+    --line:#E7E7EE;
+    --indigo:#5B4FD1;
+    --indigo-deep:#4A3FBD;
+    --indigo-wash:#F0EEFC;
+    --positive:#1FA971;
+    --positive-wash:#E9F8F0;
+    --negative:#E0524A;
+    --negative-wash:#FBEAEA;
+    --neutral:#C98A1F;
+    --neutral-wash:#FBF1E1;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter', sans-serif;
+    background:linear-gradient(165deg, #EEF0FC 0%, #F0EBF8 35%, #F8ECEF 65%, #FCEFE9 100%);
+    color:var(--ink);
+    min-height:100vh;
+  }
+  a{color:inherit; text-decoration:none;}
+  button{font-family:inherit;}
+
+  .topnav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 32px; background:var(--card); border-bottom:1px solid var(--line);
+  }
+  .nav-left{ display:flex; align-items:center; gap:16px; }
+  .burger-btn{
+    width:38px; height:38px; display:flex; align-items:center; justify-content:center;
+    border-radius:9px; border:1px solid var(--line); background:#fff; cursor:pointer; flex:0 0 auto;
+    transition:border-color 0.15s, background 0.15s;
+  }
+  .burger-btn:hover{ border-color:var(--indigo); background:var(--indigo-wash); }
+  .burger-btn svg{ width:17px; height:17px; }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand .logo-mark{
+    width:32px; height:32px; border-radius:9px;
+    background:linear-gradient(135deg,#5A6CE0,#C46F86);
+    display:flex; align-items:center; justify-content:center; flex:0 0 auto;
+  }
+  .brand .wordmark{ font-family:'Plus Jakarta Sans', sans-serif; font-weight:700; font-size:17px; letter-spacing:-0.01em; }
+  .nav-right{ display:flex; align-items:center; gap:18px; }
+  .avatar{
+    width:34px; height:34px; border-radius:50%;
+    background:var(--indigo-wash); color:var(--indigo);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:13px; font-family:'Plus Jakarta Sans', sans-serif;
+  }
+
+  .drawer-overlay{
+    position:fixed; inset:0; background:rgba(22,26,44,0.32);
+    opacity:0; visibility:hidden; transition:opacity 0.2s; z-index:40;
+  }
+  .drawer-overlay.open{ opacity:1; visibility:visible; }
+  .drawer{
+    position:fixed; top:0; left:0; height:100vh; width:270px;
+    background:#fff; border-right:1px solid var(--line); z-index:50;
+    transform:translateX(-100%); transition:transform 0.22s ease;
+    display:flex; flex-direction:column; padding:22px 18px;
+  }
+  .drawer.open{ transform:translateX(0); }
+  .drawer-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; padding:0 4px; }
+  .drawer-close{
+    width:32px; height:32px; display:flex; align-items:center; justify-content:center;
+    border-radius:8px; border:none; background:var(--field-bg); cursor:pointer;
+  }
+  .drawer-close svg{ width:14px; height:14px; }
+  .drawer-nav{ display:flex; flex-direction:column; gap:4px; }
+  .drawer-item{
+    display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:9px;
+    font-size:14px; font-weight:600; color:var(--ink-soft); cursor:pointer;
+    transition:background 0.15s, color 0.15s;
+  }
+  .drawer-item:hover{ background:var(--field-bg); color:var(--ink); }
+  .drawer-item.current{ background:var(--indigo-wash); color:var(--indigo); }
+  .drawer-item .d-icon{ width:19px; height:19px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; }
+  .drawer-item .d-icon svg{ width:100%; height:100%; }
+  .drawer-item .alert-dot{ width:7px; height:7px; border-radius:50%; background:var(--negative); margin-left:auto; }
+  .drawer-foot{ margin-top:auto; border-top:1px solid var(--line); padding-top:14px; }
+  .drawer-foot .drawer-item{ color:var(--ink-soft); }
+
+  .page{ max-width:900px; margin:0 auto; padding:36px 24px 80px; }
+  .page-head{ margin-bottom:24px; }
+  .page-head h1{ font-family:'Plus Jakarta Sans', sans-serif; font-weight:800; font-size:26px; margin:0 0 4px; }
+  .page-head p{ font-size:14px; color:var(--ink-soft); margin:0; }
+
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:26px; margin-bottom:16px; }
+  .card h2{ font-family:'Plus Jakarta Sans', sans-serif; font-weight:700; font-size:16px; margin:0 0 4px; }
+  .card .card-sub{ font-size:13.5px; color:var(--ink-soft); margin:0 0 18px; }
+
+  .row{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 0; border-bottom:1px solid var(--line);
+  }
+  .row:last-child{ border-bottom:none; }
+  .row .r-label{ font-size:14px; font-weight:600; }
+  .row .r-sub{ font-size:12.5px; color:var(--ink-soft); margin-top:2px; }
+
+  .cleanup-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:6px; }
+  .cleanup-btn{
+    padding:14px; border-radius:10px; border:1.5px solid var(--line);
+    background:#fff; cursor:pointer; text-align:left;
+    transition:border-color 0.15s, background 0.15s;
+  }
+  .cleanup-btn:hover{ border-color:var(--indigo); background:var(--indigo-wash); }
+  .cleanup-btn .cb-title{ font-size:14px; font-weight:700; margin-bottom:2px; }
+  .cleanup-btn .cb-sub{ font-size:12px; color:var(--ink-soft); }
+
+  .info-banner{
+    display:flex; gap:12px;
+    background:var(--indigo-wash);
+    border:1px solid #DAD4F5;
+    border-radius:10px;
+    padding:14px 16px;
+    margin-bottom:18px;
+    font-size:13px;
+    color:var(--ink);
+    line-height:1.5;
+  }
+  .info-banner .ib-icon{ flex:0 0 auto; color:var(--indigo); }
+
+  .danger-card{
+    background:var(--negative-wash);
+    border:1px solid #F3C6C1;
+  }
+  .danger-card h2{ color:var(--negative); }
+  .btn-danger{
+    padding:11px 20px;
+    background:#fff;
+    color:var(--negative);
+    border:1.5px solid var(--negative);
+    border-radius:9px;
+    font-size:13.5px;
+    font-weight:700;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    cursor:pointer;
+  }
+  .btn-danger:hover{ background:var(--negative); color:#fff; }
+
+  .btn-secondary{
+    padding:10px 16px; background:#fff; color:var(--ink); border:1px solid var(--line);
+    border-radius:9px; font-size:13px; font-weight:600; cursor:pointer;
+  }
+  .btn-secondary:hover{ border-color:var(--indigo); }
+
+  .close-flow{
+    display:none;
+    margin-top:16px;
+    padding-top:16px;
+    border-top:1px solid #F3C6C1;
+  }
+  .close-flow.open{ display:block; }
+  .close-flow input{
+    width:100%; max-width:320px;
+    padding:10px 13px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    font-size:13.5px;
+    margin:10px 0 12px;
+  }
+
+  .legal-links{
+    display:flex; gap:16px; font-size:13px; color:var(--ink-soft);
+  }
+  .legal-links a{ color:var(--indigo); font-weight:600; }
+
+  .toast{
+    display:none;
+    background:var(--positive-wash);
+    color:var(--positive);
+    border:1px solid #CDEBDA;
+    border-radius:10px;
+    padding:12px 16px;
+    font-size:13.5px;
+    font-weight:600;
+    margin-bottom:16px;
+  }
+  .toast.show{ display:block; }
+
+  @media (max-width: 700px){
+    .cleanup-grid{ grid-template-columns:1fr; }
+    .row{ flex-direction:column; align-items:flex-start; gap:8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="nav-left">
+    <button class="burger-btn" onclick="openDrawer()" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/></svg>
+    </button>
+    <a class="brand" href="dashboard.html" title="Back to Signalwave home">
+      <span class="logo-mark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 15c2.2 0 3.3-7 5.5-7s3.3 7 5.5 7 3.3-7 5.5-7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span class="wordmark">Signalwave</span>
+    </a>
+  </div>
+  <div class="nav-right">
+    <div class="avatar">JD</div>
+  </div>
+</div>
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<nav class="drawer" id="drawer">
+  <div class="drawer-head">
+    <a class="brand" href="dashboard.html">
+      <span class="logo-mark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 15c2.2 0 3.3-7 5.5-7s3.3 7 5.5 7 3.3-7 5.5-7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span class="wordmark">Signalwave</span>
+    </a>
+    <button class="drawer-close" onclick="closeDrawer()" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="drawer-nav">
+    <a class="drawer-item" href="dashboard.html">
+      <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></span>
+      Dashboard
+    </a>
+    <a class="drawer-item" href="harassing-comments.html">
+      <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 4 6.5v5c0 5 3.5 7.7 8 9.5 4.5-1.8 8-4.5 8-9.5v-5L12 3z"/><path d="M12 8v4.5M12 15.2v.1" stroke-linecap="round"/></svg></span>
+      Harassing comments
+      <span class="alert-dot"></span>
+    </a>
+    <a class="drawer-item" href="sentiment-analysis.html">
+      <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M20 19v-3" stroke-linecap="round"/></svg></span>
+      Sentiment Analysis
+    </a>
+    <a class="drawer-item current" href="settings.html">
+      <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+      Settings
+    </a>
+  </div>
+  <div class="drawer-foot">
+    <a class="drawer-item" href="#" onclick="return false;">
+      <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      Log out
+    </a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-head">
+    <h1>Settings</h1>
+    <p>Manage your connected accounts, data retention, and account preferences.</p>
+  </div>
+
+  <div class="toast" id="toast">Done — that data has been queued for deletion.</div>
+
+  <div class="card">
+    <h2>Connected accounts</h2>
+    <p class="card-sub">Profiles Signalwave currently has access to.</p>
+    <div class="row">
+      <div>
+        <div class="r-label">Lena Cruz — Instagram</div>
+        <div class="r-sub">Connected Jul 2, 2026</div>
+      </div>
+      <a class="btn-secondary" href="#" onclick="return false;">Disconnect</a>
+    </div>
+    <div class="row">
+      <div>
+        <div class="r-label">Nova Studio — Facebook</div>
+        <div class="r-sub">Connected Jun 18, 2026</div>
+      </div>
+      <a class="btn-secondary" href="#" onclick="return false;">Disconnect</a>
+    </div>
+    <div class="row">
+      <div>
+        <div class="r-label">+ Connect another profile</div>
+      </div>
+      <a class="btn-secondary" href="onboarding.html">Connect</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Data &amp; retention</h2>
+    <p class="card-sub">How long we keep your data, and how to manage it yourself.</p>
+
+    <div class="info-banner">
+      <span class="ib-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg></span>
+      <span>If an account goes idle for 12 months, we'll email you asking whether to keep your data — if we don't hear back, it's deleted 30 days later. While your account stays active, nothing is deleted automatically; use the options below whenever you want to clean things up yourself.</span>
+    </div>
+
+    <div class="row" style="border-bottom:none; padding-bottom:0;">
+      <div>
+        <div class="r-label">Clean up older data</div>
+        <div class="r-sub">Permanently remove comment and sentiment data older than a chosen age.</div>
+      </div>
+    </div>
+    <div class="cleanup-grid">
+      <button class="cleanup-btn" onclick="cleanup('2')">
+        <div class="cb-title">Older than 2 years</div>
+        <div class="cb-sub">Light cleanup</div>
+      </button>
+      <button class="cleanup-btn" onclick="cleanup('5')">
+        <div class="cb-title">Older than 5 years</div>
+        <div class="cb-sub">Moderate cleanup</div>
+      </button>
+      <button class="cleanup-btn" onclick="cleanup('7')">
+        <div class="cb-title">Older than 7 years</div>
+        <div class="cb-sub">Deep cleanup</div>
+      </button>
+    </div>
+  </div>
+
+  <div class="card danger-card">
+    <h2>Close account</h2>
+    <p class="card-sub" style="color:#8a4440;">Closing your account permanently deletes all your data within 24 hours. This cannot be undone.</p>
+    <button class="btn-danger" onclick="document.getElementById('closeFlow').classList.add('open')">Close my account</button>
+
+    <div class="close-flow" id="closeFlow">
+      <p style="font-size:13.5px;">To confirm, type <strong>DELETE</strong> below. Once confirmed, all comments, sentiment history, and connected profile data will be permanently erased within 24 hours and cannot be recovered.</p>
+      <input type="text" id="confirmDelete" placeholder="Type DELETE to confirm">
+      <div style="display:flex; gap:10px;">
+        <button class="btn-danger" onclick="confirmClose()">Permanently close account</button>
+        <button class="btn-secondary" onclick="document.getElementById('closeFlow').classList.remove('open')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Legal</h2>
+    <div class="legal-links">
+      <a href="privacy-policy.html">Privacy Policy</a>
+      <a href="data-deletion.html">Data Deletion Request</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function openDrawer(){
+    document.getElementById('drawer').classList.add('open');
+    document.getElementById('drawerOverlay').classList.add('open');
+  }
+  function closeDrawer(){
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('drawerOverlay').classList.remove('open');
+  }
+  document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeDrawer(); });
+
+  function cleanup(years){
+    const toast = document.getElementById('toast');
+    toast.textContent = 'Done — data older than ' + years + ' years has been queued for permanent deletion.';
+    toast.classList.add('show');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function confirmClose(){
+    const val = document.getElementById('confirmDelete').value.trim();
+    if(val !== 'DELETE'){
+      alert('Please type DELETE exactly to confirm.');
+      return;
+    }
+    alert('Account closure confirmed. All data will be permanently deleted within 24 hours.');
+  }
+</script>
+
+</body>
+</html>
