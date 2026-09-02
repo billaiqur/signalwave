@@ -40,12 +40,37 @@ def get_db():
 
 def init_schema():
     """Create the schema if it doesn't exist, then create all tables."""
+    # Import ALL models here so their tables are registered on Base.metadata
+    import src.db.models  # noqa: F401 — side-effect import registers all ORM classes
     with engine.connect() as conn:
         conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {POSTGRES_SCHEMA}"))
         conn.commit()
     Base.metadata.create_all(bind=engine)
+
+    # ── Safe column migrations (ADD COLUMN IF NOT EXISTS) ─────
+    _run_migrations()
+
     logger.info(f"Database schema '{POSTGRES_SCHEMA}' and tables initialised.")
     _seed_keywords()
+
+
+def _run_migrations():
+    """Add new columns to existing tables without dropping data."""
+    migrations = [
+        # monitored_channels: schedule fields added in Phase 2
+        f"ALTER TABLE {POSTGRES_SCHEMA}.monitored_channels ADD COLUMN IF NOT EXISTS scan_interval_hours INTEGER",
+        f"ALTER TABLE {POSTGRES_SCHEMA}.monitored_channels ADD COLUMN IF NOT EXISTS last_scanned_at TIMESTAMP",
+        # users: youtube connection ID
+        f"ALTER TABLE {POSTGRES_SCHEMA}.users ADD COLUMN IF NOT EXISTS youtube_id VARCHAR",
+    ]
+    with engine.connect() as conn:
+        for sql in migrations:
+            try:
+                conn.execute(text(sql))
+            except Exception as e:
+                logger.warning(f"Migration skipped ({e}): {sql[:60]}")
+        conn.commit()
+    logger.debug("Column migrations applied.")
 
 
 def _seed_keywords():

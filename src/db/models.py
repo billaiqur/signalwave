@@ -160,6 +160,11 @@ class MonitoredChannel(Base):
     # Derived from the client's PlatformAppCredential at onboarding time.
     access_token = Column(Text, nullable=False)
 
+    # Tracking schedule set by user during onboarding: 1 = hourly, 24 = daily,
+    # 168 = weekly, 0 = run-once. NULL means not yet scheduled.
+    scan_interval_hours = Column(Integer, nullable=True)
+    last_scanned_at     = Column(DateTime, nullable=True)
+
     is_active  = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

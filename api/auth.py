@@ -27,6 +27,9 @@ import urllib.parse
 from datetime import datetime, timedelta
 from typing import Optional
 
+from dotenv import load_dotenv
+load_dotenv(override=True)  # always reload .env so FRONTEND_URL etc. are fresh
+
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, Query
 from fastapi.responses import RedirectResponse
@@ -67,7 +70,7 @@ YOUTUBE_CONNECT_SCOPES = (
 )
 
 FRONTEND_URL  = os.getenv("FRONTEND_URL", "http://localhost:5500")   # GitHub Pages URL in prod
-BACKEND_URL   = os.getenv("BACKEND_URL", "http://localhost:8001")    # Render URL in prod
+BACKEND_URL   = os.getenv("BACKEND_URL", "http://localhost:9000")    # Render URL in prod
 
 GRAPH_API_VERSION = os.getenv("GRAPH_API_VERSION", "v19.0")
 
@@ -646,3 +649,4 @@ def save_profile(
     db.add(channel)
     db.commit()
     return {"message": "Channel added", "id": req.channel_id}
+

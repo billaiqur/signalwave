@@ -681,7 +681,7 @@
     </div>
     <div class="step-line"></div>
     <div class="step-item" data-step="3">
-      <div class="step-dot">3</div><div class="step-label">Select profile</div>
+      <div class="step-dot">3</div><div class="step-label">Select</div>
     </div>
     <div class="step-line"></div>
     <div class="step-item" data-step="4">
@@ -689,7 +689,11 @@
     </div>
     <div class="step-line"></div>
     <div class="step-item" data-step="5">
-      <div class="step-dot">5</div><div class="step-label">Done</div>
+      <div class="step-dot">5</div><div class="step-label">Schedule</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-item" data-step="6">
+      <div class="step-dot">6</div><div class="step-label">Done</div>
     </div>
   </div>
 
@@ -841,22 +845,74 @@
       </div>
     </div>
 
-    <!-- STEP 5: SUCCESS -->
+    <!-- STEP 5: SCHEDULE FREQUENCY -->
     <div class="step-panel" data-panel="5">
+      <h2>How often should we scan?</h2>
+      <p class="step-sub">We'll automatically fetch new comments from <span id="schedule-name">your channel</span> and check for harassment.</p>
+
+      <div id="schedule-error" style="display:none;background:#FBEAEA;color:#C64545;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;"></div>
+
+      <div class="profile-list" id="frequency-list" style="margin-bottom:20px;">
+        <div class="profile-row" id="freq-hourly" onclick="selectFrequency(this,1)">
+          <div class="pfp" style="background:linear-gradient(135deg,#5B4FD1,#8264C9);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;">⚡</div>
+          <div>
+            <div class="pname">Hourly</div>
+            <div class="phandle">Scans every 60 minutes — best for high-traffic channels</div>
+          </div>
+          <div class="p-check"></div>
+        </div>
+        <div class="profile-row" id="freq-daily" onclick="selectFrequency(this,24)">
+          <div class="pfp" style="background:linear-gradient(135deg,#1FA971,#34C987);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;">📅</div>
+          <div>
+            <div class="pname">Daily <span style="font-size:11px;background:var(--indigo-wash);color:var(--indigo);padding:2px 8px;border-radius:10px;font-weight:700;margin-left:6px;">Recommended</span></div>
+            <div class="phandle">Scans once every 24 hours — good balance of speed and cost</div>
+          </div>
+          <div class="p-check"></div>
+        </div>
+        <div class="profile-row" id="freq-weekly" onclick="selectFrequency(this,168)">
+          <div class="pfp" style="background:linear-gradient(135deg,#C98A1F,#F0B429);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;">🗓️</div>
+          <div>
+            <div class="pname">Weekly</div>
+            <div class="phandle">Scans once every 7 days — suitable for low-volume channels</div>
+          </div>
+          <div class="p-check"></div>
+        </div>
+        <div class="profile-row" id="freq-once" onclick="selectFrequency(this,0)">
+          <div class="pfp" style="background:linear-gradient(135deg,#6B7086,#A0A8C8);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;">▶️</div>
+          <div>
+            <div class="pname">Run once now</div>
+            <div class="phandle">Single scan only — you can change this later in Settings</div>
+          </div>
+          <div class="p-check"></div>
+        </div>
+      </div>
+
+      <div id="scan-status" style="display:none;background:var(--indigo-wash);border:1px solid var(--indigo);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--indigo);">
+        ⏳ Running first scan… this usually takes 10–30 seconds.
+      </div>
+
+      <div class="step-actions">
+        <button class="btn-back" onclick="goToStep(4)">Back</button>
+        <button class="btn-primary" id="btn-step5" disabled onclick="confirmSchedule()">Start scanning</button>
+      </div>
+    </div>
+
+    <!-- STEP 6: SUCCESS -->
+    <div class="step-panel" data-panel="6">
       <div class="success-wrap">
         <div class="success-icon">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
-        <h2>You're all set</h2>
-        <p>We're pulling in comments now — sentiment tags usually show up within a couple of minutes.</p>
+        <h2>You're all set!</h2>
+        <p>We've kicked off the first scan. Head to your dashboard to see comments, harassment flags, and more.</p>
         <div class="success-summary">
-          <div class="pfp"></div>
+          <div class="pfp" style="background:linear-gradient(135deg,#8264C9,#E68A6E);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700;" id="success-pfp">Y</div>
           <div>
-            <div class="sname" id="success-name">Lena Cruz</div>
-            <div class="sstatus">● Now tracking</div>
+            <div class="sname" id="success-name">Your Channel</div>
+            <div class="sstatus" id="success-status">● Now tracking · <span id="success-schedule">Daily</span></div>
           </div>
         </div>
-        <a class="btn-primary full" style="display:block; text-align:center; text-decoration:none;" href="dashboard.html">Go to dashboard</a>
+        <a class="btn-primary full" style="display:block; text-align:center; text-decoration:none;" href="dashboard.html">Go to dashboard →</a>
       </div>
     </div>
 
@@ -865,17 +921,13 @@
 
 <script>
   // ── Config ────────────────────────────────────────────────
-  const API = localStorage.getItem('sw_api_base') || 'http://localhost:8001';
-  const token = localStorage.getItem('sw_token');
+  const API = localStorage.getItem('sw_api_base') || 'http://localhost:9000';
 
-  // Auth guard — redirect to login if no token
-  if (!token) { window.location.href = 'index.html'; }
-
-  // ── On load: check for OAuth callback params ──────────────
+  // ── Extract token from URL FIRST (before auth guard) ─────
   (function () {
     const params = new URLSearchParams(window.location.search);
 
-    // Fresh token from login/register redirect
+    // Fresh token from login/register redirect — save it before guard runs
     if (params.get('token')) {
       localStorage.setItem('sw_token', params.get('token'));
     }
@@ -894,6 +946,10 @@
     // Clean URL params
     window.history.replaceState({}, '', window.location.pathname);
   })();
+
+  // ── Auth guard — redirect to login if still no token ──────
+  const token = localStorage.getItem('sw_token');
+  if (!token) { window.location.href = 'index.html'; }
 
   function openDrawer(){
     document.getElementById('drawer').classList.add('open');
@@ -1029,12 +1085,22 @@
     document.getElementById('btn-step4').disabled = !document.getElementById('consentBox').checked;
   }
 
-  // ── Step 5: save selected profile to backend ──────────────
+  // ── Step 4: save channel → advance to frequency step ────────
+  let savedChannelId = null;  // remembered after POST /api/channels
+
   async function finishSetup(){
-    if (!selectedProfile) { goToStep(5); return; }
+    if (!selectedProfile) { 
+      alert("Please select a channel to monitor");
+      return; 
+    }
+
+    const btn = document.getElementById('btn-step4');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = 'Saving…';
 
     try {
-      await fetch(`${API}/auth/connect/save-profile`, {
+      const response = await fetch(`${API}/api/channels`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1043,14 +1109,109 @@
         body: JSON.stringify({
           platform:      selectedProfile.platform,
           channel_id:    selectedProfile.id,
-          channel_name:  selectedProfile.name,
+          channel_name:  selectedProfile.name || '',
           access_token:  selectedProfile.access_token || '',
-          handle:        selectedProfile.handle || '',
         }),
       });
-    } catch(e) { console.warn('save-profile failed (non-fatal)', e); }
 
-    goToStep(5);
+      const data = await response.json();
+
+      if (!response.ok) {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        const errEl = document.getElementById('consent-error');
+        if (errEl) { errEl.style.display = 'block'; errEl.textContent = data.detail || 'Save failed'; }
+        else alert(`Error: ${data.detail || 'Could not save channel'}`);
+        return;
+      }
+
+      // Channel saved — remember ID for schedule step
+      savedChannelId = data.id || selectedProfile.id;
+
+      // Populate schedule step
+      document.getElementById('schedule-name').textContent = data.name || selectedProfile.name;
+      document.getElementById('success-name').textContent  = data.name || selectedProfile.name;
+      const initial = (data.name || selectedProfile.name || '?')[0].toUpperCase();
+      const pfpEl = document.getElementById('success-pfp');
+      if (pfpEl) pfpEl.textContent = initial;
+
+      // Auto-select "Daily" as default
+      const dailyRow = document.getElementById('freq-daily');
+      if (dailyRow) selectFrequency(dailyRow, 24);
+
+      goToStep(5);
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+
+    } catch(e) { 
+      console.error('save-channel failed', e);
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+      alert(`Network error: ${e.message}`);
+    }
+  }
+
+  // ── Step 5: frequency selection ─────────────────────────────
+  let selectedIntervalHours = null;
+
+  function selectFrequency(row, hours) {
+    document.querySelectorAll('#frequency-list .profile-row').forEach(r => r.classList.remove('selected'));
+    row.classList.add('selected');
+    selectedIntervalHours = hours;
+    document.getElementById('btn-step5').disabled = false;
+  }
+
+  async function confirmSchedule() {
+    if (selectedIntervalHours === null || !savedChannelId) {
+      alert('Please choose a scan frequency');
+      return;
+    }
+
+    const btn = document.getElementById('btn-step5');
+    btn.disabled = true;
+    btn.textContent = 'Starting…';
+
+    const statusEl = document.getElementById('scan-status');
+    const errEl    = document.getElementById('schedule-error');
+    statusEl.style.display = 'block';
+    errEl.style.display    = 'none';
+
+    try {
+      const response = await fetch(`${API}/api/channels/${encodeURIComponent(savedChannelId)}/start-tracking`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('sw_token')}`,
+        },
+        body: JSON.stringify({ scan_interval_hours: selectedIntervalHours }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        statusEl.style.display = 'none';
+        errEl.style.display = 'block';
+        errEl.textContent = data.detail || 'Could not start tracking';
+        btn.disabled = false;
+        btn.textContent = 'Start scanning';
+        return;
+      }
+
+      // Update success screen
+      const scheduleLabel = {1:'Hourly', 24:'Daily', 168:'Weekly', 0:'Once'}[selectedIntervalHours] || 'Custom';
+      const schedEl = document.getElementById('success-schedule');
+      if (schedEl) schedEl.textContent = scheduleLabel;
+
+      statusEl.style.display = 'none';
+      goToStep(6);
+
+    } catch(e) {
+      statusEl.style.display = 'none';
+      errEl.style.display = 'block';
+      errEl.textContent = `Network error: ${e.message}`;
+      btn.disabled = false;
+      btn.textContent = 'Start scanning';
+    }
   }
 
   // Deep link support: onboarding.html?step=4&harass=1

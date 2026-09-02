@@ -499,27 +499,27 @@
   <div class="stat-grid">
     <div class="stat-card">
       <div class="s-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16" stroke-linecap="round"/></svg></div>
-      <div class="s-num">128</div>
-      <div class="s-label">Total posts</div>
-      <div class="s-delta up">▲ 8 this month</div>
-    </div>
-    <div class="stat-card">
-      <div class="s-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.8 8.6c0 4.4-8.8 9.9-8.8 9.9S3.2 13 3.2 8.6a4.8 4.8 0 0 1 8.8-2.7A4.8 4.8 0 0 1 20.8 8.6z"/></svg></div>
-      <div class="s-num">482K</div>
-      <div class="s-label">Total likes</div>
-      <div class="s-delta up">▲ 12.4% vs last month</div>
+      <div class="s-num" id="stat-videos">—</div>
+      <div class="s-label">Videos tracked</div>
+      <div class="s-delta" id="stat-videos-sub" style="color:var(--ink-soft);">Loading…</div>
     </div>
     <div class="stat-card">
       <div class="s-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12c0 4.4-4 8-9 8-1.5 0-2.9-.3-4.1-.9L3 20l1.1-3.8C3.4 14.9 3 13.5 3 12c0-4.4 4-8 9-8s9 3.6 9 8z"/></svg></div>
-      <div class="s-num">36.2K</div>
+      <div class="s-num" id="stat-comments">—</div>
       <div class="s-label">Total comments</div>
-      <div class="s-delta up">▲ 5.1% vs last month</div>
+      <div class="s-delta" id="stat-comments-sub" style="color:var(--ink-soft);">Loading…</div>
     </div>
     <div class="stat-card">
-      <div class="s-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l5-5.5 4 3L21 6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div class="s-num">7.4%</div>
-      <div class="s-label">Engagement rate</div>
-      <div class="s-delta down">▼ 0.6% vs last month</div>
+      <div class="s-icon" style="background:var(--negative-wash);color:var(--negative);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 4 6.5v5c0 5 3.5 7.7 8 9.5 4.5-1.8 8-4.5 8-9.5v-5L12 3z"/><path d="M12 8v4.5M12 15.2v.1" stroke-linecap="round"/></svg></div>
+      <div class="s-num" id="stat-harassing" style="color:var(--negative);">—</div>
+      <div class="s-label">Harassing comments</div>
+      <div class="s-delta" id="stat-harassing-sub" style="color:var(--ink-soft);">Loading…</div>
+    </div>
+    <div class="stat-card">
+      <div class="s-icon" style="background:var(--positive-wash);color:var(--positive);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l5-5.5 4 3L21 6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="s-num" id="stat-hidden" style="color:var(--positive);">—</div>
+      <div class="s-label">Auto-hidden / removed</div>
+      <div class="s-delta" id="stat-hidden-sub" style="color:var(--ink-soft);">Loading…</div>
     </div>
   </div>
 
@@ -591,20 +591,20 @@
     </div>
     <div class="mini-stat-grid">
       <div class="mini-stat">
-        <div class="m-num">86</div>
+        <div class="m-num" id="mini-flagged">—</div>
         <div class="m-label">Flagged</div>
       </div>
       <div class="mini-stat deleted">
-        <div class="m-num">52</div>
-        <div class="m-label">Deleted</div>
+        <div class="m-num" id="mini-hidden">—</div>
+        <div class="m-label">Hidden / Deleted</div>
       </div>
       <div class="mini-stat hidden">
-        <div class="m-num">21</div>
-        <div class="m-label">Hidden</div>
+        <div class="m-num" id="mini-flagged-users">—</div>
+        <div class="m-label">Profiles flagged</div>
       </div>
       <div class="mini-stat reported">
-        <div class="m-num">9</div>
-        <div class="m-label">Profiles reported</div>
+        <div class="m-num" id="mini-videos">—</div>
+        <div class="m-label">Videos scanned</div>
       </div>
     </div>
   </div>
@@ -656,11 +656,97 @@
 </div>
 
 <script>
-  function openDrawer(){
-    document.getElementById('drawer').classList.add('open');
-    document.getElementById('drawerOverlay').classList.add('open');
+  // ── Configuration ──
+  const API = 'http://localhost:9000';
+
+  // ── Save token from URL if redirected from OAuth ──────────
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('token')) {
+      localStorage.setItem('sw_token', params.get('token'));
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    // Auth guard — redirect to login if no token
+    if (!localStorage.getItem('sw_token')) {
+      window.location.href = 'index.html';
+    }
+  })();
+
+  // ── Load channels and update UI ──
+  async function loadChannels() {
+    try {
+      const [channelsResp, statsResp] = await Promise.all([
+        fetch(`${API}/api/channels`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('sw_token')}` },
+        }),
+        fetch(`${API}/api/stats/summary`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('sw_token')}` },
+        }),
+      ]);
+
+      if (!channelsResp.ok) {
+        console.error('Failed to load channels:', channelsResp.status);
+        setDemoState('new');
+        return;
+      }
+
+      const channels = await channelsResp.json();
+      console.log('User channels:', channels);
+
+      const stats = statsResp.ok ? await statsResp.json() : null;
+      if (stats) updateStatCards(stats);
+
+      if (channels && channels.length > 0) {
+        setDemoState('full');
+        // Update channel name in heading
+        const firstName = channels[0].name || channels[0].id;
+        const headEl = document.querySelector('.page-head p strong');
+        if (headEl) headEl.textContent = firstName;
+      } else {
+        setDemoState('new');
+        // Zero out stat cards when no channels
+        updateStatCards({ videos: 0, total_comments: 0, harassing_comments: 0, hidden_comments: 0 });
+      }
+    } catch (e) {
+      console.error('Error loading data:', e);
+      setDemoState('new');
+    }
   }
-  function closeDrawer(){
+
+  function fmt(n) {
+    if (n === undefined || n === null) return '—';
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+    if (n >= 1000)    return (n / 1000).toFixed(1) + 'K';
+    return String(n);
+  }
+
+  function updateStatCards(s) {
+    const set = (id, val, sub) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+      const sub2 = document.getElementById(id + '-sub');
+      if (sub2) { sub2.textContent = sub; sub2.className = 's-delta'; }
+    };
+    set('stat-videos',    fmt(s.videos),    s.last_scanned_at ? `Last scan: ${new Date(s.last_scanned_at).toLocaleString()}` : 'Not yet scanned');
+    set('stat-comments',  fmt(s.total_comments),    `Across ${s.channels || 0} channel${(s.channels||0)!==1?'s':''}`);
+    set('stat-harassing', fmt(s.harassing_comments), s.total_comments > 0 ? `${((s.harassing_comments/s.total_comments)*100).toFixed(1)}% of all comments` : 'No comments yet');
+    set('stat-hidden',    fmt(s.hidden_comments),    `${s.flagged_users || 0} flagged user${(s.flagged_users||0)!==1?'s':''}`);
+
+    // Update "full" mini-stat grid too
+    const mFlagged  = document.getElementById('mini-flagged');
+    const mHidden   = document.getElementById('mini-hidden');
+    const mFlagged2 = document.getElementById('mini-flagged-users');
+    const mVideos   = document.getElementById('mini-videos');
+    if (mFlagged)  mFlagged.textContent  = fmt(s.harassing_comments);
+    if (mHidden)   mHidden.textContent   = fmt(s.hidden_comments);
+    if (mFlagged2) mFlagged2.textContent = fmt(s.flagged_users);
+    if (mVideos)   mVideos.textContent   = fmt(s.videos);
+  }
+
+  // Load channels on page load
+  document.addEventListener('DOMContentLoaded', loadChannels);
+
+  function openDrawer(){
     document.getElementById('drawer').classList.remove('open');
     document.getElementById('drawerOverlay').classList.remove('open');
   }
