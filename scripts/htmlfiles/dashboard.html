@@ -451,7 +451,7 @@
     </a>
   </div>
   <div class="nav-right">
-    <div class="avatar">JD</div>
+    <div class="avatar" id="avatarInitials">--</div>
   </div>
 </div>
 
@@ -882,7 +882,33 @@
   }
 
   // Load channels on page load
-  document.addEventListener('DOMContentLoaded', loadChannels);
+  // ── Load user profile → populate avatar initials ──
+  async function loadMe() {
+    try {
+      const r = await fetch(`${API}/auth/me`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('sw_token')}` },
+      });
+      if (r.status === 401) { logout(); return; }
+      if (!r.ok) return;
+      const u = await r.json();
+      const initials = (u.name || u.email || '?')
+        .split(' ')
+        .map(w => w[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+      const el = document.getElementById('avatarInitials');
+      if (el) el.textContent = initials;
+      // Also update the heading subtitle with the user's first name
+      const headEl = document.getElementById('head-name');
+      if (headEl && headEl.textContent === 'your channels are') {
+        const firstName = (u.name || '').split(' ')[0] || 'your channels';
+        if (firstName !== 'your') headEl.textContent = firstName + "'s channels";
+      }
+    } catch(e) {}
+  }
+
+  document.addEventListener('DOMContentLoaded', () => { loadMe(); loadChannels(); });
 
   function openDrawer(){
     document.getElementById('drawer').classList.add('open');
