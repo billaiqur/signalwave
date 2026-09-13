@@ -34,6 +34,7 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, Query
 from fastapi.responses import RedirectResponse
 from jose import JWTError, jwt
+from loguru import logger
 from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
@@ -55,9 +56,12 @@ FACEBOOK_APP_ID     = os.getenv("FACEBOOK_APP_ID", "")
 FACEBOOK_APP_SECRET = os.getenv("FACEBOOK_APP_SECRET", "")
 
 # Meta scopes for ACCOUNT CONNECTION (not login)
+# Basic scopes work immediately in Live mode.
+# Advanced scopes (pages_manage_engagement, instagram_*) require Meta App Review.
 META_CONNECT_SCOPES = (
     "pages_show_list,"
     "pages_read_engagement,"
+    "pages_manage_posts,"
     "pages_manage_engagement,"
     "instagram_basic,"
     "instagram_manage_comments"
@@ -430,6 +434,7 @@ def meta_connect_callback(
         timeout=15,
     )
     if resp.status_code != 200:
+        logger.error(f"[Meta] Token exchange failed: {resp.status_code} — {resp.text}")
         raise HTTPException(status_code=502, detail=f"Meta token exchange failed: {resp.text}")
 
     short_token = resp.json()["access_token"]
@@ -463,14 +468,19 @@ def meta_connect_callback(
     db.commit()
 
     # Fetch pages this user manages
-    pages_resp = httpx.get(
-        f"https://graph.facebook.com/{GRAPH_API_VERSION}/me/accounts",
-        params={
-            "fields": "id,name,access_token,instagram_business_account{id,name,username}",
-            "access_token": long_lived_token,
-        },
-        timeout=15,
-    ).json()
+    try:
+        pages_resp = httpx.get(
+            f"https://graph.facebook.com/{GRAPH_API_VERSION}/me/accounts",
+            params={
+                "fields": "id,name,access_token,instagram_business_account{id,name,username}",
+                "access_token": long_lived_token,
+            },
+            timeout=15,
+        ).json()
+        logger.info(f"[Meta] /me/accounts response: {pages_resp}")
+    except Exception as e:
+        logger.error(f"[Meta] Failed to fetch pages: {e}")
+        pages_resp = {}
 
     profiles = []
     for page in pages_resp.get("data", []):
@@ -491,6 +501,8 @@ def meta_connect_callback(
                 "type": "instagram",
                 "access_token": page.get("access_token", ""),
             })
+
+    logger.info(f"[Meta] Found {len(profiles)} profiles for user {user.id}")
 
     # Redirect back to onboarding with profiles in session
     token = _create_jwt(user.id)
