@@ -358,6 +358,25 @@
   .mini-stat.hidden .m-num{ color:var(--neutral); }
   .mini-stat.reported .m-num{ color:var(--indigo); }
 
+  /* Recent comments in dashboard card */
+  .rc-row{
+    display:flex; align-items:flex-start; gap:10px;
+    padding:10px 0; border-top:1px solid var(--line);
+  }
+  .rc-pfp{
+    width:30px; height:30px; border-radius:50%; flex:0 0 auto;
+    background:linear-gradient(135deg,#8264C9,#E68A6E);
+  }
+  .rc-body{ flex:1; min-width:0; }
+  .rc-name{ font-size:12.5px; font-weight:700; margin-bottom:2px; display:flex; align-items:center; gap:6px; }
+  .rc-platform{
+    font-size:10px; font-weight:600; padding:1px 5px;
+    border-radius:4px; background:var(--field-bg); color:var(--ink-soft);
+  }
+  .rc-msg{ font-size:12.5px; color:var(--ink); font-style:italic; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rc-score{ font-size:11px; color:var(--negative); font-weight:700; flex:0 0 auto; margin-top:2px; }
+  .rc-empty{ font-size:13px; color:var(--ink-soft); padding:12px 0; text-align:center; }
+
   .sentiment-row{
     display:flex;
     align-items:center;
@@ -605,6 +624,7 @@
         <div class="m-label">Videos scanned</div>
       </div>
     </div>
+    <div id="recent-comments-list" style="margin-top:14px;"></div>
   </div>
 
   <!-- SENTIMENT SECTION -->
@@ -670,17 +690,12 @@
     }
   })();
 
-  // ── Load channels and update UI ──
+  // ── Load channels on page load ──
   async function loadChannels() {
     try {
-      const [channelsResp, statsResp] = await Promise.all([
-        fetch(`${API}/api/channels`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('sw_token')}` },
-        }),
-        fetch(`${API}/api/stats/summary`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('sw_token')}` },
-        }),
-      ]);
+      const channelsResp = await fetch(`${API}/api/channels`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('sw_token')}` },
+      });
 
       if (!channelsResp.ok) {
         console.error('Failed to load channels:', channelsResp.status);
@@ -691,11 +706,9 @@
       const channels = await channelsResp.json();
       console.log('User channels:', channels);
 
-      const stats = statsResp.ok ? await statsResp.json() : null;
-      if (stats) updateStatCards(stats);
-
       if (channels && channels.length > 0) {
         setDemoState('full');
+
         // Populate channel dropdown
         const sel = document.getElementById('channel-select');
         if (sel) {
@@ -710,41 +723,83 @@
           });
           sel.style.display = '';
 
-          // Wire dropdown → re-fetch stats for selected channel
-          sel.addEventListener('change', async () => {
+          // Wire dropdown → refresh entire dashboard for selected channel
+          sel.addEventListener('change', () => {
             const selectedId = sel.value;
             const selectedCh = channels.find(c => c.id === selectedId);
-            // Update heading
             const headEl = document.getElementById('head-name');
-            if (headEl) headEl.textContent = selectedCh ? (selectedCh.name || selectedCh.youtube_id || 'your channel') : 'your channels';
-            // Fetch stats for selected channel (or all if "All channels")
-            const url = selectedId
-              ? `${API}/api/stats/summary?channel_id=${encodeURIComponent(selectedId)}`
-              : `${API}/api/stats/summary`;
-            try {
-              const r = await fetch(url, { headers: { 'Authorization': `Bearer ${localStorage.getItem('sw_token')}` } });
-              if (r.ok) updateStatCards(await r.json());
-            } catch(e) { console.error('Failed to reload stats:', e); }
+            if (headEl) headEl.textContent = selectedCh
+              ? (selectedCh.name || selectedCh.youtube_id || 'your channel')
+              : 'your channels';
+            refreshDashboard(selectedId || null);
           });
         }
-        // Update heading with first channel's name (or user name)
+
+        // Update heading with first channel name
         const headEl = document.getElementById('head-name');
-        if (headEl) {
-          const firstName = channels[0].name || channels[0].youtube_id || 'your channels';
-          headEl.textContent = firstName;
-        }
+        if (headEl) headEl.textContent = channels[0].name || channels[0].youtube_id || 'your channels';
+
+        // Initial full refresh (all channels)
+        await refreshDashboard(null);
+
       } else {
         setDemoState('new');
-        // Hide dropdown when no channels
         const sel = document.getElementById('channel-select');
         if (sel) sel.style.display = 'none';
-        // Zero out stat cards when no channels
         updateStatCards({ videos: 0, total_comments: 0, harassing_comments: 0, hidden_comments: 0 });
       }
     } catch (e) {
       console.error('Error loading data:', e);
       setDemoState('new');
     }
+  }
+
+  // ── Refresh stats + recent harassing comments for a channel (or all) ──
+  async function refreshDashboard(channelId) {
+    const token = localStorage.getItem('sw_token');
+    const headers = { 'Authorization': `Bearer ${token}` };
+    const suffix = channelId ? `?channel_id=${encodeURIComponent(channelId)}` : '';
+
+    // Load stats + comments in parallel
+    const [statsResp, commentsResp] = await Promise.all([
+      fetch(`${API}/api/stats/summary${suffix}`, { headers }),
+      fetch(`${API}/api/comments?harassing_only=true&limit=5${channelId ? '&channel_id=' + encodeURIComponent(channelId) : ''}`, { headers }),
+    ]);
+
+    if (statsResp.ok) updateStatCards(await statsResp.json());
+
+    const listEl = document.getElementById('recent-comments-list');
+    if (listEl) {
+      if (commentsResp.ok) {
+        const comments = await commentsResp.json();
+        renderRecentComments(listEl, comments);
+      } else {
+        listEl.innerHTML = '';
+      }
+    }
+  }
+
+  // ── Render recent harassing comment rows ──
+  function renderRecentComments(container, comments) {
+    if (!comments || comments.length === 0) {
+      container.innerHTML = '<div class="rc-empty">✓ No harassing comments found</div>';
+      return;
+    }
+    container.innerHTML = comments.map(c => {
+      const user = c.platform_user_name || c.platform_user_id || 'Unknown';
+      const platform = c.platform ? c.platform.charAt(0).toUpperCase() + c.platform.slice(1).toLowerCase() : '';
+      const score = c.harassment_score != null ? (c.harassment_score * 100).toFixed(0) + '%' : '';
+      const msg = (c.message || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return `
+      <div class="rc-row">
+        <div class="rc-pfp"></div>
+        <div class="rc-body">
+          <div class="rc-name">${user.replace(/</g,'&lt;')} <span class="rc-platform">${platform}</span></div>
+          <div class="rc-msg">"${msg}"</div>
+        </div>
+        ${score ? `<div class="rc-score">${score}</div>` : ''}
+      </div>`;
+    }).join('');
   }
 
   function fmt(n) {
