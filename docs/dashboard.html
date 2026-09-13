@@ -776,17 +776,17 @@
     if (!container || !data || !data.length) return;
 
     const maxVal = Math.max(...data.map(d => d.total), 1);
+
+    // Generate .bar divs — CSS expects direct children with height%
     container.innerHTML = data.map(d => {
-      const pct = Math.round((d.total / maxVal) * 100);
-      const hasPct = Math.round((d.harassing / maxVal) * 100);
-      return `<div class="bar-wrap" title="${d.date}: ${d.total} total, ${d.harassing} harassing" style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;height:100%">
-        <div style="background:#5B4FD1;border-radius:3px 3px 0 0;height:${pct}%;min-height:${d.total>0?2:0}px"></div>
-      </div>`;
+      const pct = Math.max(Math.round((d.total / maxVal) * 100), d.total > 0 ? 2 : 0);
+      const title = `${d.date}: ${d.total} comment${d.total !== 1 ? 's' : ''}, ${d.harassing} harassing`;
+      return `<div class="bar" style="height:${pct}%" title="${title}"></div>`;
     }).join('');
 
+    // Labels — show day-of-month, every other one to avoid crowding
     labelsEl.innerHTML = data.map((d, i) => {
       const day = new Date(d.date + 'T00:00:00').getDate();
-      // show every other label to avoid crowding
       return `<span>${i % 2 === 0 ? day : ''}</span>`;
     }).join('');
   }

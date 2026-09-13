@@ -337,11 +337,12 @@ def comments_over_time(
     Returns daily comment counts (total + harassing) for the last N days.
     Used by dashboard charts.
     """
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta, date as date_type
     from sqlalchemy import func, cast, Date, Integer
 
-    today = datetime.now(timezone.utc).date()
+    today = datetime.utcnow().date()
     start = today - timedelta(days=days - 1)
+    start_dt = datetime(start.year, start.month, start.day, 0, 0, 0)
 
     # Pre-fill all days with zeros
     daily = {}
@@ -374,7 +375,7 @@ def comments_over_time(
             )
             .filter(
                 Comment.post_id.in_(post_ids),
-                Comment.fetched_at >= start,
+                Comment.fetched_at >= start_dt,
             )
             .group_by(cast(Comment.fetched_at, Date))
             .all()
