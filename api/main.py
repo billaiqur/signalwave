@@ -325,6 +325,69 @@ def stats_summary(
     }
 
 
+# ── Comments over time (last N days) ─────────────────────────
+@app.get("/api/stats/comments-over-time")
+def comments_over_time(
+    channel_id: Optional[str] = Query(None),
+    days: int = Query(14, le=90),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Returns daily comment counts (total + harassing) for the last N days.
+    Used by dashboard charts.
+    """
+    from datetime import datetime, timedelta, timezone
+    from sqlalchemy import func, cast, Date, Integer
+
+    today = datetime.now(timezone.utc).date()
+    start = today - timedelta(days=days - 1)
+
+    # Pre-fill all days with zeros
+    daily = {}
+    for i in range(days):
+        d = start + timedelta(days=i)
+        daily[str(d)] = {"date": str(d), "total": 0, "harassing": 0}
+
+    # Scope to user's channels
+    channels_q = db.query(MonitoredChannel).filter(
+        MonitoredChannel.client_id == current_user.client_id,
+        MonitoredChannel.is_active == True,
+    )
+    if channel_id:
+        channels_q = channels_q.filter(MonitoredChannel.id == channel_id)
+    channel_ids = [c.id for c in channels_q.all()]
+
+    if not channel_ids:
+        return list(daily.values())
+
+    post_ids = [
+        row[0] for row in db.query(TrackedPost.id).filter(TrackedPost.channel_id.in_(channel_ids)).all()
+    ]
+
+    if post_ids:
+        rows = (
+            db.query(
+                cast(Comment.fetched_at, Date).label("day"),
+                func.count(Comment.id).label("total"),
+                func.sum(cast(Comment.is_harassing, Integer)).label("harassing"),
+            )
+            .filter(
+                Comment.post_id.in_(post_ids),
+                Comment.fetched_at >= start,
+            )
+            .group_by(cast(Comment.fetched_at, Date))
+            .all()
+        )
+        for row in rows:
+            key = str(row.day)
+            if key in daily:
+                daily[key]["total"] = row.total or 0
+                daily[key]["harassing"] = int(row.harassing or 0)
+
+    return list(daily.values())
+
+
 # ── Backward-compat aliases for /api/pages ────────────────────
 @app.get("/api/pages", include_in_schema=False)
 def list_pages_compat(db: Session = Depends(get_db)):

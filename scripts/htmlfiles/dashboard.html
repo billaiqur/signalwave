@@ -545,44 +545,27 @@
       <div class="card-head">
         <h3>Comments over the last 14 days</h3>
       </div>
-      <div class="bar-chart">
-        <div class="bar" style="height:38%"></div>
-        <div class="bar" style="height:52%"></div>
-        <div class="bar" style="height:44%"></div>
-        <div class="bar" style="height:61%"></div>
-        <div class="bar" style="height:58%"></div>
-        <div class="bar" style="height:70%"></div>
-        <div class="bar" style="height:66%"></div>
-        <div class="bar" style="height:80%"></div>
-        <div class="bar" style="height:74%"></div>
-        <div class="bar" style="height:90%"></div>
-        <div class="bar" style="height:84%"></div>
-        <div class="bar" style="height:96%"></div>
-        <div class="bar" style="height:88%"></div>
-        <div class="bar" style="height:100%"></div>
+      <div class="bar-chart" id="bar-chart-container">
+        <!-- rendered by JS -->
       </div>
-      <div class="bar-chart-labels">
-        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span>
-        <span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span>
+      <div class="bar-chart-labels" id="bar-chart-labels">
+        <!-- rendered by JS -->
       </div>
     </div>
 
     <div class="card">
       <div class="card-head">
-        <h3>Likes vs. comments</h3>
+        <h3>Total vs. harassing</h3>
         <div class="legend">
-          <span><span class="dot" style="background:#5B4FD1;"></span>Likes</span>
-          <span><span class="dot" style="background:#E68A6E;"></span>Comments</span>
+          <span><span class="dot" style="background:#5B4FD1;"></span>Total</span>
+          <span><span class="dot" style="background:#E68A6E;"></span>Harassing</span>
         </div>
       </div>
-      <svg viewBox="0 0 340 150" width="100%" height="150">
+      <svg id="line-chart-svg" viewBox="0 0 340 150" width="100%" height="150">
         <line x1="0" y1="30" x2="340" y2="30" stroke="#E7E7EE" stroke-width="1"/>
         <line x1="0" y1="75" x2="340" y2="75" stroke="#E7E7EE" stroke-width="1"/>
         <line x1="0" y1="120" x2="340" y2="120" stroke="#E7E7EE" stroke-width="1"/>
-        <polyline points="0,95 30,88 60,92 90,70 120,74 150,55 180,60 210,40 240,45 270,28 300,32 340,18"
-          fill="none" stroke="#5B4FD1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <polyline points="0,120 30,115 60,118 90,105 120,108 150,98 180,102 210,88 240,92 270,80 300,85 340,72"
-          fill="none" stroke="#E68A6E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- polylines rendered by JS -->
       </svg>
     </div>
   </div>
@@ -760,10 +743,11 @@
     const headers = { 'Authorization': `Bearer ${token}` };
     const suffix = channelId ? `?channel_id=${encodeURIComponent(channelId)}` : '';
 
-    // Load stats + comments in parallel
-    const [statsResp, commentsResp] = await Promise.all([
+    // Load stats + comments + chart data in parallel
+    const [statsResp, commentsResp, chartResp] = await Promise.all([
       fetch(`${API}/api/stats/summary${suffix}`, { headers }),
       fetch(`${API}/api/comments?harassing_only=true&limit=5${channelId ? '&channel_id=' + encodeURIComponent(channelId) : ''}`, { headers }),
+      fetch(`${API}/api/stats/comments-over-time${suffix}`, { headers }),
     ]);
 
     if (statsResp.ok) updateStatCards(await statsResp.json());
@@ -777,6 +761,71 @@
         listEl.innerHTML = '';
       }
     }
+
+    if (chartResp.ok) {
+      const chartData = await chartResp.json();
+      renderBarChart(chartData);
+      renderLineChart(chartData);
+    }
+  }
+
+  // ── Render bar chart (total comments per day) ──
+  function renderBarChart(data) {
+    const container = document.getElementById('bar-chart-container');
+    const labelsEl  = document.getElementById('bar-chart-labels');
+    if (!container || !data || !data.length) return;
+
+    const maxVal = Math.max(...data.map(d => d.total), 1);
+    container.innerHTML = data.map(d => {
+      const pct = Math.round((d.total / maxVal) * 100);
+      const hasPct = Math.round((d.harassing / maxVal) * 100);
+      return `<div class="bar-wrap" title="${d.date}: ${d.total} total, ${d.harassing} harassing" style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;height:100%">
+        <div style="background:#5B4FD1;border-radius:3px 3px 0 0;height:${pct}%;min-height:${d.total>0?2:0}px"></div>
+      </div>`;
+    }).join('');
+
+    labelsEl.innerHTML = data.map((d, i) => {
+      const day = new Date(d.date + 'T00:00:00').getDate();
+      // show every other label to avoid crowding
+      return `<span>${i % 2 === 0 ? day : ''}</span>`;
+    }).join('');
+  }
+
+  // ── Render line chart (total vs harassing over time) ──
+  function renderLineChart(data) {
+    const svg = document.getElementById('line-chart-svg');
+    if (!svg || !data || !data.length) return;
+
+    const W = 340, H = 130, PAD_TOP = 10, PAD_BOT = 10;
+    const plotH = H - PAD_TOP - PAD_BOT;
+    const maxTotal = Math.max(...data.map(d => d.total), 1);
+
+    function toPoints(values) {
+      return values.map((v, i) => {
+        const x = data.length === 1 ? W / 2 : (i / (data.length - 1)) * W;
+        const y = PAD_TOP + plotH - (v / maxTotal) * plotH;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      }).join(' ');
+    }
+
+    const totalPts    = toPoints(data.map(d => d.total));
+    const harassPts   = toPoints(data.map(d => d.harassing));
+
+    // Remove old polylines, keep grid lines
+    svg.querySelectorAll('polyline').forEach(el => el.remove());
+    const ns = 'http://www.w3.org/2000/svg';
+    const mkLine = (pts, color) => {
+      const pl = document.createElementNS(ns, 'polyline');
+      pl.setAttribute('points', pts);
+      pl.setAttribute('fill', 'none');
+      pl.setAttribute('stroke', color);
+      pl.setAttribute('stroke-width', '2.5');
+      pl.setAttribute('stroke-linecap', 'round');
+      pl.setAttribute('stroke-linejoin', 'round');
+      svg.appendChild(pl);
+    };
+    mkLine(totalPts,  '#5B4FD1');
+    mkLine(harassPts, '#E68A6E');
   }
 
   // ── Render recent harassing comment rows ──
