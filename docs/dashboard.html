@@ -450,26 +450,26 @@
     </button>
   </div>
   <div class="drawer-nav">
-    <a class="drawer-item current" href="dashboard.html">
+    <a class="drawer-item current" href="dashboard.html" onclick="closeDrawer()">
       <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></span>
       Dashboard
     </a>
-    <a class="drawer-item" href="harassing-comments.html">
+    <a class="drawer-item" href="harassing-comments.html" onclick="closeDrawer()">
       <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 4 6.5v5c0 5 3.5 7.7 8 9.5 4.5-1.8 8-4.5 8-9.5v-5L12 3z"/><path d="M12 8v4.5M12 15.2v.1" stroke-linecap="round"/></svg></span>
       Harassing comments
       <span class="alert-dot"></span>
     </a>
-    <a class="drawer-item" href="sentiment-analysis.html">
+    <a class="drawer-item" href="sentiment-analysis.html" onclick="closeDrawer()">
       <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M20 19v-3" stroke-linecap="round"/></svg></span>
       Sentiment Analysis
     </a>
-    <a class="drawer-item" href="settings.html">
+    <a class="drawer-item" href="settings.html" onclick="closeDrawer()">
       <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
       Settings
     </a>
   </div>
   <div class="drawer-foot">
-    <a class="drawer-item" href="#" onclick="return false;">
+    <a class="drawer-item" href="#" onclick="logout(); return false;">
       <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       Log out
     </a>
@@ -747,9 +747,26 @@
   document.addEventListener('DOMContentLoaded', loadChannels);
 
   function openDrawer(){
+    document.getElementById('drawer').classList.add('open');
+    document.getElementById('drawerOverlay').classList.add('open');
+  }
+
+  function closeDrawer(){
     document.getElementById('drawer').classList.remove('open');
     document.getElementById('drawerOverlay').classList.remove('open');
   }
+
+  // Navigate to another page, passing the JWT so auth guard doesn't kick out
+  function navigateTo(page) {
+    closeDrawer();
+    window.location.href = page;
+  }
+
+  function logout() {
+    localStorage.removeItem('sw_token');
+    window.location.href = 'index.html';
+  }
+
   document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeDrawer(); });
 
   function setDemoState(state){
