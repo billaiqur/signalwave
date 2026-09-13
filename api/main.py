@@ -241,18 +241,23 @@ def start_tracking(
 # ── Stats Summary ─────────────────────────────────────────────
 @app.get("/api/stats/summary")
 def stats_summary(
+    channel_id: Optional[str] = Query(None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
     Returns aggregate counts for the current user's tracked channels.
+    Optionally filter to a single channel by passing ?channel_id=...
     Used by dashboard.html to populate stat cards.
     """
     # Channels for this user
-    channels = db.query(MonitoredChannel).filter_by(
-        client_id=current_user.client_id,
-        is_active=True,
-    ).all()
+    channels_q = db.query(MonitoredChannel).filter(
+        MonitoredChannel.client_id == current_user.client_id,
+        MonitoredChannel.is_active == True,
+    )
+    if channel_id:
+        channels_q = channels_q.filter(MonitoredChannel.id == channel_id)
+    channels = channels_q.all()
     channel_ids = [c.id for c in channels]
 
     if not channel_ids:

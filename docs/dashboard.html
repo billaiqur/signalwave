@@ -709,13 +709,29 @@
             sel.appendChild(opt);
           });
           sel.style.display = '';
+
+          // Wire dropdown → re-fetch stats for selected channel
+          sel.addEventListener('change', async () => {
+            const selectedId = sel.value;
+            const selectedCh = channels.find(c => c.id === selectedId);
+            // Update heading
+            const headEl = document.getElementById('head-name');
+            if (headEl) headEl.textContent = selectedCh ? (selectedCh.name || selectedCh.youtube_id || 'your channel') : 'your channels';
+            // Fetch stats for selected channel (or all if "All channels")
+            const url = selectedId
+              ? `${API}/api/stats/summary?channel_id=${encodeURIComponent(selectedId)}`
+              : `${API}/api/stats/summary`;
+            try {
+              const r = await fetch(url, { headers: { 'Authorization': `Bearer ${localStorage.getItem('sw_token')}` } });
+              if (r.ok) updateStatCards(await r.json());
+            } catch(e) { console.error('Failed to reload stats:', e); }
+          });
         }
         // Update heading with first channel's name (or user name)
         const headEl = document.getElementById('head-name');
         if (headEl) {
           const firstName = channels[0].name || channels[0].youtube_id || 'your channels';
           headEl.textContent = firstName;
-          headEl.nextSibling && (headEl.parentElement.lastChild.textContent = ' is');
         }
       } else {
         setDemoState('new');
