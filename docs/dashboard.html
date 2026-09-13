@@ -481,12 +481,10 @@
   <div class="page-head">
     <div>
       <h1>Dashboard</h1>
-      <p>Here's how <strong>Lena Cruz</strong> is performing across tracked channels.</p>
+      <p>Here's how <strong id="head-name">your channels are</strong> performing across tracked channels.</p>
     </div>
-    <select class="select-pill">
-      <option>Lena Cruz — Instagram</option>
-      <option>Nova Studio — Facebook</option>
-      <option>Marcus Field — Instagram</option>
+    <select class="select-pill" id="channel-select">
+      <option value="">All channels</option>
     </select>
   </div>
 
@@ -698,12 +696,32 @@
 
       if (channels && channels.length > 0) {
         setDemoState('full');
-        // Update channel name in heading
-        const firstName = channels[0].name || channels[0].id;
-        const headEl = document.querySelector('.page-head p strong');
-        if (headEl) headEl.textContent = firstName;
+        // Populate channel dropdown
+        const sel = document.getElementById('channel-select');
+        if (sel) {
+          sel.innerHTML = '<option value="">All channels</option>';
+          channels.forEach(ch => {
+            const platform = ch.platform ? ch.platform.charAt(0).toUpperCase() + ch.platform.slice(1).toLowerCase() : '';
+            const label = [ch.name || ch.youtube_id || ch.id, platform].filter(Boolean).join(' — ');
+            const opt = document.createElement('option');
+            opt.value = ch.id;
+            opt.textContent = label;
+            sel.appendChild(opt);
+          });
+          sel.style.display = '';
+        }
+        // Update heading with first channel's name (or user name)
+        const headEl = document.getElementById('head-name');
+        if (headEl) {
+          const firstName = channels[0].name || channels[0].youtube_id || 'your channels';
+          headEl.textContent = firstName;
+          headEl.nextSibling && (headEl.parentElement.lastChild.textContent = ' is');
+        }
       } else {
         setDemoState('new');
+        // Hide dropdown when no channels
+        const sel = document.getElementById('channel-select');
+        if (sel) sel.style.display = 'none';
         // Zero out stat cards when no channels
         updateStatCards({ videos: 0, total_comments: 0, harassing_comments: 0, hidden_comments: 0 });
       }
