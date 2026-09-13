@@ -273,7 +273,7 @@
     </a>
   </div>
   <div class="nav-right">
-    <div class="avatar">JD</div>
+    <div class="avatar" id="avatarInitials">--</div>
   </div>
 </div>
 
@@ -291,25 +291,25 @@
     </button>
   </div>
   <div class="drawer-nav">
-    <a class="drawer-item" href="dashboard.html">
+    <a class="drawer-item" href="dashboard.html" onclick="closeDrawer()">
       <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></span>
       Dashboard
     </a>
-    <a class="drawer-item current" href="harassing-comments.html">
+    <a class="drawer-item current" href="harassing-comments.html" onclick="closeDrawer()">
       <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 4 6.5v5c0 5 3.5 7.7 8 9.5 4.5-1.8 8-4.5 8-9.5v-5L12 3z"/><path d="M12 8v4.5M12 15.2v.1" stroke-linecap="round"/></svg></span>
       Harassing comments
     </a>
-    <a class="drawer-item" href="sentiment-analysis.html">
+    <a class="drawer-item" href="sentiment-analysis.html" onclick="closeDrawer()">
       <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M20 19v-3" stroke-linecap="round"/></svg></span>
       Sentiment Analysis
     </a>
-    <a class="drawer-item" href="settings.html">
+    <a class="drawer-item" href="settings.html" onclick="closeDrawer()">
       <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
       Settings
     </a>
   </div>
   <div class="drawer-foot">
-    <a class="drawer-item" href="#" onclick="return false;">
+    <a class="drawer-item" href="#" onclick="logout(); return false;">
       <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       Log out
     </a>
@@ -325,20 +325,20 @@
 
   <div class="stat-strip">
     <div class="strip-card">
-      <div class="st-num">86</div>
+      <div class="st-num" id="stat-flagged">—</div>
       <div class="st-label">Total flagged</div>
     </div>
-    <div class="strip-card deleted">
-      <div class="st-num">52</div>
-      <div class="st-label">Deleted</div>
-    </div>
     <div class="strip-card hidden">
-      <div class="st-num">21</div>
+      <div class="st-num" id="stat-hidden">—</div>
       <div class="st-label">Hidden</div>
     </div>
+    <div class="strip-card deleted">
+      <div class="st-num" id="stat-reviewed">—</div>
+      <div class="st-label">Reviewed</div>
+    </div>
     <div class="strip-card reported">
-      <div class="st-num">9</div>
-      <div class="st-label">Profiles reported</div>
+      <div class="st-num" id="stat-flagged-users">—</div>
+      <div class="st-label">Flagged users</div>
     </div>
   </div>
 
@@ -365,106 +365,28 @@
     </select>
   </div>
 
-  <!-- Comment 1: pending, needs action -->
-  <div class="comment-card">
-    <div class="comment-row">
-      <div class="pfp"></div>
-      <div class="comment-body">
-        <div class="comment-top">
-          <span class="pname">grunwald_speaks</span>
-          <span class="phandle">@grunwald_speaks</span>
-          <span class="platform-chip">Instagram</span>
-        </div>
-        <div class="comment-text">"You're honestly disgusting, hope you lose everything you built."</div>
-        <div class="comment-meta">Flagged automatically · toxicity score 0.94 · Jul 22, 2026, 6:41pm</div>
-      </div>
-      <div class="comment-actions">
-        <span class="status-badge pending">Pending review</span>
-        <div class="action-btns">
-          <button class="icon-btn" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2l1-12" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <button class="icon-btn" title="Hide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><path d="M4 4l16 16" stroke-linecap="round"/></svg></button>
-          <button class="icon-btn" title="Report profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 3v18M5 4h11l-2.5 4L16 12H5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Comment 2: deleted, with history -->
-  <div class="comment-card">
-    <div class="comment-row">
-      <div class="pfp"></div>
-      <div class="comment-body">
-        <div class="comment-top">
-          <span class="pname">coldtakez99</span>
-          <span class="phandle">@coldtakez99</span>
-          <span class="platform-chip">Facebook</span>
-        </div>
-        <div class="comment-text">"Nobody asked, go back to whatever hole you crawled out of."</div>
-        <div class="comment-meta">Deleted by Signalwave · Jul 21, 2026, 11:05am</div>
-      </div>
-      <div class="comment-actions">
-        <span class="status-badge deleted">Deleted</span>
-        <button class="history-toggle" onclick="toggleHistory(this)">View history ▾</button>
-      </div>
-    </div>
-    <div class="history-panel">
-      <div class="history-item"><span class="h-dot"></span><span><strong>Flagged automatically</strong> — toxicity score 0.89 — Jul 21, 10:58am</span></div>
-      <div class="history-item"><span class="h-dot"></span><span><strong>Deleted by Signalwave</strong> — Jul 21, 11:05am</span></div>
-    </div>
-  </div>
-
-  <!-- Comment 3: hidden + reported, with history -->
-  <div class="comment-card">
-    <div class="comment-row">
-      <div class="pfp"></div>
-      <div class="comment-body">
-        <div class="comment-top">
-          <span class="pname">Marlon Reyes</span>
-          <span class="phandle">@notmarlon_ok</span>
-          <span class="platform-chip">Instagram</span>
-        </div>
-        <div class="comment-text">"You should be ashamed to even post your face."</div>
-        <div class="comment-meta">Hidden and reported · Jul 19, 2026, 3:22pm</div>
-      </div>
-      <div class="comment-actions">
-        <span class="status-badge reported">Reported</span>
-        <button class="history-toggle" onclick="toggleHistory(this)">View history ▾</button>
-      </div>
-    </div>
-    <div class="history-panel">
-      <div class="history-item"><span class="h-dot"></span><span><strong>Flagged automatically</strong> — toxicity score 0.91 — Jul 19, 3:10pm</span></div>
-      <div class="history-item"><span class="h-dot"></span><span><strong>Hidden by Signalwave</strong> — Jul 19, 3:12pm</span></div>
-      <div class="history-item"><span class="h-dot"></span><span><strong>Reported to Instagram</strong> — Jul 19, 3:22pm — Case #INS-88213</span></div>
-    </div>
-  </div>
-
-  <!-- Comment 4: hidden only -->
-  <div class="comment-card">
-    <div class="comment-row">
-      <div class="pfp"></div>
-      <div class="comment-body">
-        <div class="comment-top">
-          <span class="pname">tb_unfiltered</span>
-          <span class="phandle">@tb_unfiltered</span>
-          <span class="platform-chip">YouTube</span>
-        </div>
-        <div class="comment-text">"This is why nobody takes you seriously, clown."</div>
-        <div class="comment-meta">Hidden by Signalwave · Jul 17, 2026, 9:47am</div>
-      </div>
-      <div class="comment-actions">
-        <span class="status-badge hidden">Hidden</span>
-        <button class="history-toggle" onclick="toggleHistory(this)">View history ▾</button>
-      </div>
-    </div>
-    <div class="history-panel">
-      <div class="history-item"><span class="h-dot"></span><span><strong>Flagged automatically</strong> — toxicity score 0.78 — Jul 17, 9:44am</span></div>
-      <div class="history-item"><span class="h-dot"></span><span><strong>Hidden by Signalwave</strong> — Jul 17, 9:47am</span></div>
-    </div>
-  </div>
+  <!-- Comment cards rendered dynamically -->
+  <div id="comments-list"></div>
 
 </div>
 
 <script>
+  const API = 'http://localhost:9000';
+
+  // ── Auth guard ──────────────────────────────────────────────
+  (function(){
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('token')) localStorage.setItem('sw_token', params.get('token'));
+    if (!localStorage.getItem('sw_token')) window.location.href = 'index.html';
+  })();
+
+  function authHeader(){ return { 'Authorization': 'Bearer ' + localStorage.getItem('sw_token') }; }
+
+  function logout(){
+    localStorage.removeItem('sw_token');
+    window.location.href = 'index.html';
+  }
+
   function openDrawer(){
     document.getElementById('drawer').classList.add('open');
     document.getElementById('drawerOverlay').classList.add('open');
@@ -480,6 +402,170 @@
     const open = panel.classList.toggle('open');
     btn.textContent = open ? 'Hide history ▴' : 'View history ▾';
   }
+
+  // ── Load user profile ────────────────────────────────────────
+  async function loadMe(){
+    try {
+      const r = await fetch(`${API}/auth/me`, { headers: authHeader() });
+      if (r.status === 401){ logout(); return; }
+      const u = await r.json();
+      const initials = (u.name || u.email || '?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+      document.getElementById('avatarInitials').textContent = initials;
+    } catch(e){}
+  }
+
+  // ── Load stats ───────────────────────────────────────────────
+  async function loadStats(){
+    try {
+      const r = await fetch(`${API}/api/stats/summary`, { headers: authHeader() });
+      if (!r.ok) return;
+      const s = await r.json();
+      document.getElementById('stat-flagged').textContent = s.harassing_comments ?? 0;
+      document.getElementById('stat-hidden').textContent = s.hidden_comments ?? 0;
+      document.getElementById('stat-reviewed').textContent = s.reviewed_comments ?? 0;
+      document.getElementById('stat-flagged-users').textContent = s.flagged_users ?? 0;
+    } catch(e){}
+  }
+
+  // ── Render helpers ───────────────────────────────────────────
+  function scoreLabel(score){
+    if (score == null) return '';
+    return `toxicity score ${score.toFixed(2)}`;
+  }
+
+  function formatDate(iso){
+    if (!iso) return '';
+    return new Date(iso).toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit' });
+  }
+
+  function statusBadge(c){
+    if (c.is_hidden) return '<span class="status-badge hidden">Hidden</span>';
+    if (!c.is_reviewed) return '<span class="status-badge pending">Pending review</span>';
+    return '<span class="status-badge reported">Reviewed</span>';
+  }
+
+  function platformChip(platform){
+    const name = platform ? platform.charAt(0).toUpperCase() + platform.slice(1).toLowerCase() : 'Unknown';
+    return `<span class="platform-chip">${name}</span>`;
+  }
+
+  function renderComment(c){
+    const username = c.platform_user_name || c.platform_user_id || 'Unknown user';
+    const handle = c.platform_user_name ? `@${c.platform_user_name}` : '';
+    const meta = [
+      c.is_hidden ? 'Hidden by Signalwave' : 'Flagged automatically',
+      scoreLabel(c.harassment_score),
+      formatDate(c.created_time || c.fetched_at)
+    ].filter(Boolean).join(' · ');
+
+    return `
+    <div class="comment-card" data-id="${c.id}">
+      <div class="comment-row">
+        <div class="pfp"></div>
+        <div class="comment-body">
+          <div class="comment-top">
+            <span class="pname">${escHtml(username)}</span>
+            ${handle ? `<span class="phandle">${escHtml(handle)}</span>` : ''}
+            ${platformChip(c.platform)}
+          </div>
+          <div class="comment-text">"${escHtml(c.message || '')}"</div>
+          <div class="comment-meta">${meta}</div>
+        </div>
+        <div class="comment-actions">
+          ${statusBadge(c)}
+          ${!c.is_hidden ? `
+          <div class="action-btns">
+            <button class="icon-btn" title="Hide" onclick="hideComment('${c.id}', this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><path d="M4 4l16 16" stroke-linecap="round"/></svg>
+            </button>
+          </div>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function escHtml(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Load comments ────────────────────────────────────────────
+  let allComments = [];
+  let filterPlatform = '', filterStatus = '', filterSearch = '';
+
+  async function loadComments(){
+    const list = document.getElementById('comments-list');
+    list.innerHTML = '<p style="color:var(--ink-soft);padding:24px 0">Loading…</p>';
+    try {
+      const r = await fetch(`${API}/api/comments?harassing_only=true&limit=100`, { headers: authHeader() });
+      if (r.status === 401){ logout(); return; }
+      allComments = await r.json();
+      renderFiltered();
+    } catch(e){
+      list.innerHTML = '<p style="color:var(--negative);padding:24px 0">Failed to load comments. Is the server running?</p>';
+    }
+  }
+
+  function renderFiltered(){
+    const list = document.getElementById('comments-list');
+    let filtered = allComments;
+    if (filterPlatform) filtered = filtered.filter(c => (c.platform||'').toLowerCase() === filterPlatform);
+    if (filterStatus === 'hidden') filtered = filtered.filter(c => c.is_hidden);
+    if (filterStatus === 'pending') filtered = filtered.filter(c => !c.is_hidden && !c.is_reviewed);
+    if (filterStatus === 'reviewed') filtered = filtered.filter(c => c.is_reviewed);
+    if (filterSearch) filtered = filtered.filter(c =>
+      (c.message||'').toLowerCase().includes(filterSearch) ||
+      (c.platform_user_name||'').toLowerCase().includes(filterSearch)
+    );
+    if (filtered.length === 0){
+      list.innerHTML = `
+        <div style="text-align:center;padding:60px 24px;color:var(--ink-soft)">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:12px;opacity:0.4"><path d="M12 3 4 6.5v5c0 5 3.5 7.7 8 9.5 4.5-1.8 8-4.5 8-9.5v-5L12 3z"/></svg>
+          <p style="font-weight:700;font-size:15px;color:var(--ink)">No harassing comments found</p>
+          <p style="font-size:13px">Your channel looks clean, or no scans have run yet.</p>
+        </div>`;
+    } else {
+      list.innerHTML = filtered.map(renderComment).join('');
+    }
+  }
+
+  // ── Hide action ──────────────────────────────────────────────
+  async function hideComment(id, btn){
+    btn.disabled = true;
+    try {
+      const r = await fetch(`${API}/api/comments/${id}/hide`, { method:'POST', headers: authHeader() });
+      if (r.ok){
+        const c = allComments.find(x=>x.id===id);
+        if (c) c.is_hidden = true;
+        renderFiltered();
+        loadStats();
+      } else {
+        btn.disabled = false;
+        alert('Failed to hide comment.');
+      }
+    } catch(e){ btn.disabled = false; }
+  }
+
+  // ── Filter wiring ────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', ()=>{
+    loadMe();
+    loadStats();
+    loadComments();
+
+    document.querySelector('.filter-bar input').addEventListener('input', e=>{
+      filterSearch = e.target.value.trim().toLowerCase();
+      renderFiltered();
+    });
+    const selects = document.querySelectorAll('.filter-bar select');
+    selects[0].addEventListener('change', e=>{
+      filterPlatform = e.target.value.toLowerCase() === 'all platforms' ? '' : e.target.value.toLowerCase();
+      renderFiltered();
+    });
+    selects[1].addEventListener('change', e=>{
+      const v = e.target.value.toLowerCase();
+      filterStatus = v === 'all statuses' ? '' : v === 'pending review' ? 'pending' : v;
+      renderFiltered();
+    });
+  });
 </script>
 
 </body>

@@ -262,6 +262,7 @@ def stats_summary(
             "total_comments": 0,
             "harassing_comments": 0,
             "hidden_comments": 0,
+            "reviewed_comments": 0,
             "flagged_users": 0,
             "last_scanned_at": None,
         }
@@ -289,6 +290,13 @@ def stats_summary(
             Comment.post_id.in_(post_ids),
             Comment.is_hidden == True,
         ).scalar() or 0
+        reviewed_comments = db.query(func.count(Comment.id)).filter(
+            Comment.post_id.in_(post_ids),
+            Comment.is_harassing == True,
+            Comment.is_reviewed == True,
+        ).scalar() or 0
+    else:
+        reviewed_comments = 0
 
     # Flagged users (global for now — scope to user later if needed)
     from sqlalchemy import func as f2
@@ -306,6 +314,7 @@ def stats_summary(
         "total_comments": total_comments,
         "harassing_comments": harassing_comments,
         "hidden_comments": hidden_comments,
+        "reviewed_comments": reviewed_comments,
         "flagged_users": flagged_users,
         "last_scanned_at": last_scanned,
     }
@@ -362,12 +371,19 @@ def list_comments(
     unreviewed_only: bool = Query(False),
     limit: int = Query(50, le=200),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    q = db.query(Comment)
+    # Scope to channels owned by this user
+    user_channel_ids = [
+        ch.id for ch in db.query(MonitoredChannel).filter(MonitoredChannel.client_id == current_user.client_id).all()
+    ]
+    if not user_channel_ids:
+        return []
+    q = db.query(Comment).join(TrackedPost).filter(TrackedPost.channel_id.in_(user_channel_ids))
     if post_id:
         q = q.filter(Comment.post_id == post_id)
     if channel_id:
-        q = q.join(TrackedPost).filter(TrackedPost.channel_id == channel_id)
+        q = q.filter(TrackedPost.channel_id == channel_id)
     if platform:
         q = q.filter(Comment.platform == platform)
     if harassing_only:
