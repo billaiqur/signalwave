@@ -947,9 +947,25 @@
     window.history.replaceState({}, '', window.location.pathname);
   })();
 
-  // ── Auth guard — redirect to login if still no token ──────
+  // ── Auth guard — validate token against /auth/me ──────────
   const token = localStorage.getItem('sw_token');
   if (!token) { window.location.href = 'index.html'; }
+
+  // Silently validate token on page load — redirect to login if expired/invalid
+  (async function validateToken() {
+    try {
+      const r = await fetch(`${API}/auth/me`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('sw_token')}` },
+      });
+      if (r.status === 401) {
+        localStorage.removeItem('sw_token');
+        window.location.href = 'index.html?reason=session_expired';
+      }
+    } catch(e) {
+      // Server unreachable — let the user continue; they'll get an error later
+      console.warn('Could not validate token (server unreachable?):', e.message);
+    }
+  })();
 
   function openDrawer(){
     document.getElementById('drawer').classList.add('open');
@@ -1015,16 +1031,24 @@
       });
       if (!res.ok) {
         const err = await res.json();
+
+        // Token expired / invalid — send back to login for a fresh token
+        if (res.status === 401) {
+          localStorage.removeItem('sw_token');
+          statusEl.textContent = '✗ Session expired — redirecting to login…';
+          statusEl.style.color = '#E0524A';
+          setTimeout(() => { window.location.href = 'index.html?reason=session_expired'; }, 1500);
+          return;
+        }
+
         statusEl.textContent = '✗ ' + (err.detail || 'Connection failed');
         statusEl.style.color = '#E0524A';
         return;
       }
       const { redirect_url } = await res.json();
-      // Redirect this tab to the provider's consent screen.
-      // The backend callback will bring the user back to onboarding.html?step=3&profiles=...
       window.location.href = redirect_url;
     } catch(err) {
-      statusEl.textContent = '✗ Could not reach the server';
+      statusEl.textContent = '✗ Could not reach the server — is the API running on port 9000?';
       statusEl.style.color = '#E0524A';
     }
   }

@@ -412,6 +412,7 @@
       <div class="divider">or sign in with email</div>
 
       <!-- Error message area -->
+      <div id="session-banner" style="display:none; background:#FBF1E1; color:#7A5200; border:1px solid #F5D98A; border-radius:8px; padding:10px 14px; font-size:13.5px; margin-bottom:16px;"></div>
       <div id="auth-error" style="display:none; background:#FBEAEA; color:#C64545; border-radius:8px; padding:10px 14px; font-size:13.5px; margin-bottom:16px;"></div>
 
       <form id="login-form" onsubmit="emailLogin(event)">
@@ -462,11 +463,21 @@
     const token = params.get('token');
     if (token) {
       localStorage.setItem('sw_token', token);
-      // Clean token from URL then redirect
       window.history.replaceState({}, '', window.location.pathname);
       window.location.href = 'dashboard.html';
       return;
     }
+
+    // Show a banner if redirected here because session expired
+    if (params.get('reason') === 'session_expired') {
+      const banner = document.getElementById('session-banner');
+      if (banner) {
+        banner.style.display = 'block';
+        banner.textContent = '⚠️  Your session expired — please sign in again.';
+      }
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+
     // If already logged in, skip straight to dashboard
     if (localStorage.getItem('sw_token')) {
       window.location.href = 'dashboard.html';
