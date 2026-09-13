@@ -54,6 +54,10 @@
   }
   .brand .wordmark{ font-family:'Plus Jakarta Sans', sans-serif; font-weight:700; font-size:17px; letter-spacing:-0.01em; }
   .nav-right{ display:flex; align-items:center; gap:18px; }
+  select.select-pill{
+    padding:9px 13px; border-radius:9px; border:1px solid var(--line);
+    background:#fff; font-size:13px; font-weight:600; color:var(--ink); cursor:pointer;
+  }
   .avatar{
     width:34px; height:34px; border-radius:50%;
     background:var(--indigo-wash); color:var(--indigo);
@@ -293,7 +297,10 @@
     </a>
   </div>
   <div class="nav-right">
-    <div class="avatar">JD</div>
+    <select class="select-pill" id="channel-select" style="display:none;" onchange="onChannelChange()">
+      <option value="">All channels</option>
+    </select>
+    <div class="avatar" id="avatarInitials">--</div>
   </div>
 </div>
 
@@ -330,7 +337,7 @@
     </a>
   </div>
   <div class="drawer-foot">
-    <a class="drawer-item" href="#" onclick="return false;">
+    <a class="drawer-item" href="#" onclick="logout(); return false;">
       <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       Log out
     </a>
@@ -474,6 +481,7 @@
       <div>
         <h1>Sentiment Analysis</h1>
         <p>Based on your <strong id="profile-summary">Comedy</strong> profile</p>
+        <p id="channel-context" style="font-size:12px;color:var(--indigo);margin:2px 0 0;font-weight:600;"></p>
       </div>
       <button class="btn-secondary" onclick="editPreferences()">Edit content preferences</button>
     </div>
@@ -592,6 +600,22 @@
 </div>
 
 <script>
+  const API = 'http://localhost:9000';
+
+  // ── Auth guard ──────────────────────────────────────────────
+  (function(){
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('token')) localStorage.setItem('sw_token', params.get('token'));
+    if (!localStorage.getItem('sw_token')) window.location.href = 'index.html';
+  })();
+
+  function authHeader(){ return { 'Authorization': 'Bearer ' + localStorage.getItem('sw_token') }; }
+
+  function logout(){
+    localStorage.removeItem('sw_token');
+    window.location.href = 'index.html';
+  }
+
   function openDrawer(){
     document.getElementById('drawer').classList.add('open');
     document.getElementById('drawerOverlay').classList.add('open');
@@ -601,6 +625,54 @@
     document.getElementById('drawerOverlay').classList.remove('open');
   }
   document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeDrawer(); });
+
+  // ── Load user + channel dropdown ────────────────────────────
+  let currentChannelId = '';
+
+  async function initPage(){
+    try {
+      const [meResp, chResp] = await Promise.all([
+        fetch(`${API}/auth/me`, { headers: authHeader() }),
+        fetch(`${API}/api/channels`, { headers: authHeader() }),
+      ]);
+      if (meResp.status === 401){ logout(); return; }
+      const u = await meResp.json();
+      const initials = (u.name || u.email || '?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+      document.getElementById('avatarInitials').textContent = initials;
+
+      if (chResp.ok) {
+        const channels = await chResp.json();
+        const sel = document.getElementById('channel-select');
+        if (channels.length > 0 && sel) {
+          sel.innerHTML = '<option value="">All channels</option>';
+          channels.forEach(ch => {
+            const platform = ch.platform ? ch.platform.charAt(0).toUpperCase() + ch.platform.slice(1).toLowerCase() : '';
+            const opt = document.createElement('option');
+            opt.value = ch.id;
+            opt.textContent = [ch.name || ch.id, platform].filter(Boolean).join(' — ');
+            sel.appendChild(opt);
+          });
+          sel.style.display = '';
+        }
+      }
+    } catch(e){}
+  }
+
+  function onChannelChange(){
+    currentChannelId = document.getElementById('channel-select').value;
+    const sel = document.getElementById('channel-select');
+    const label = sel.options[sel.selectedIndex]?.text || 'All channels';
+    // Update the report profile summary label if report is visible
+    const ps = document.getElementById('profile-summary');
+    if (ps && document.getElementById('report-panel').classList.contains('show')) {
+      // Just update channel context note
+    }
+    // Re-show setup or keep report — for now just reflect channel in heading
+    const headNote = document.getElementById('channel-context');
+    if (headNote) headNote.textContent = currentChannelId ? `Showing data for: ${label}` : '';
+  }
+
+  document.addEventListener('DOMContentLoaded', initPage);
 
   const subgenreMap = {
     'Comedy': ['Sketch', 'Stand-up', 'Parody', 'Pranks', 'Reaction'],

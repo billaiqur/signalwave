@@ -238,6 +238,24 @@ def start_tracking(
     }
 
 
+@app.post("/api/channels/{channel_id}/disconnect")
+def disconnect_channel(
+    channel_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Mark a channel as inactive (disconnect) for the current user."""
+    channel = db.query(MonitoredChannel).filter_by(
+        id=channel_id,
+        client_id=current_user.client_id,
+    ).first()
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    channel.is_active = False
+    db.commit()
+    return {"success": True, "channel_id": channel_id}
+
+
 # ── Stats Summary ─────────────────────────────────────────────
 @app.get("/api/stats/summary")
 def stats_summary(

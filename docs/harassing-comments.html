@@ -58,6 +58,10 @@
   }
   .brand .wordmark{ font-family:'Plus Jakarta Sans', sans-serif; font-weight:700; font-size:17px; letter-spacing:-0.01em; }
   .nav-right{ display:flex; align-items:center; gap:18px; }
+  select.select-pill{
+    padding:9px 13px; border-radius:9px; border:1px solid var(--line);
+    background:#fff; font-size:13px; font-weight:600; color:var(--ink); cursor:pointer;
+  }
   .avatar{
     width:34px; height:34px; border-radius:50%;
     background:var(--indigo-wash); color:var(--indigo);
@@ -273,6 +277,9 @@
     </a>
   </div>
   <div class="nav-right">
+    <select class="select-pill" id="channel-select" style="display:none;" onchange="onChannelChange()">
+      <option value="">All channels</option>
+    </select>
     <div class="avatar" id="avatarInitials">--</div>
   </div>
 </div>
@@ -403,7 +410,7 @@
     btn.textContent = open ? 'Hide history ▴' : 'View history ▾';
   }
 
-  // ── Load user profile ────────────────────────────────────────
+  // ── Load user profile + populate channel dropdown ────────────
   async function loadMe(){
     try {
       const r = await fetch(`${API}/auth/me`, { headers: authHeader() });
@@ -412,12 +419,39 @@
       const initials = (u.name || u.email || '?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
       document.getElementById('avatarInitials').textContent = initials;
     } catch(e){}
+    // Load channel dropdown
+    try {
+      const r = await fetch(`${API}/api/channels`, { headers: authHeader() });
+      if (!r.ok) return;
+      const channels = await r.json();
+      const sel = document.getElementById('channel-select');
+      if (channels.length > 0 && sel) {
+        sel.innerHTML = '<option value="">All channels</option>';
+        channels.forEach(ch => {
+          const platform = ch.platform ? ch.platform.charAt(0).toUpperCase() + ch.platform.slice(1).toLowerCase() : '';
+          const opt = document.createElement('option');
+          opt.value = ch.id;
+          opt.textContent = [ch.name || ch.id, platform].filter(Boolean).join(' — ');
+          sel.appendChild(opt);
+        });
+        sel.style.display = '';
+      }
+    } catch(e){}
+  }
+
+  let currentChannelId = '';
+
+  function onChannelChange(){
+    currentChannelId = document.getElementById('channel-select').value;
+    loadStats();
+    loadComments();
   }
 
   // ── Load stats ───────────────────────────────────────────────
   async function loadStats(){
     try {
-      const r = await fetch(`${API}/api/stats/summary`, { headers: authHeader() });
+      const suffix = currentChannelId ? `?channel_id=${encodeURIComponent(currentChannelId)}` : '';
+      const r = await fetch(`${API}/api/stats/summary${suffix}`, { headers: authHeader() });
       if (!r.ok) return;
       const s = await r.json();
       document.getElementById('stat-flagged').textContent = s.harassing_comments ?? 0;
@@ -496,7 +530,8 @@
     const list = document.getElementById('comments-list');
     list.innerHTML = '<p style="color:var(--ink-soft);padding:24px 0">Loading…</p>';
     try {
-      const r = await fetch(`${API}/api/comments?harassing_only=true&limit=100`, { headers: authHeader() });
+      const suffix = currentChannelId ? `&channel_id=${encodeURIComponent(currentChannelId)}` : '';
+      const r = await fetch(`${API}/api/comments?harassing_only=true&limit=100${suffix}`, { headers: authHeader() });
       if (r.status === 401){ logout(); return; }
       allComments = await r.json();
       renderFiltered();

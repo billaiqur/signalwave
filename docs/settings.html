@@ -212,7 +212,7 @@
     </a>
   </div>
   <div class="nav-right">
-    <div class="avatar">JD</div>
+    <div class="avatar" id="avatarInitials">--</div>
   </div>
 </div>
 
@@ -249,7 +249,7 @@
     </a>
   </div>
   <div class="drawer-foot">
-    <a class="drawer-item" href="#" onclick="return false;">
+    <a class="drawer-item" href="#" onclick="logout(); return false;">
       <span class="d-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       Log out
     </a>
@@ -268,24 +268,11 @@
   <div class="card">
     <h2>Connected accounts</h2>
     <p class="card-sub">Profiles Signalwave currently has access to.</p>
-    <div class="row">
-      <div>
-        <div class="r-label">Lena Cruz — Instagram</div>
-        <div class="r-sub">Connected Jul 2, 2026</div>
-      </div>
-      <a class="btn-secondary" href="#" onclick="return false;">Disconnect</a>
+    <div id="connected-channels">
+      <div style="color:var(--ink-soft);font-size:13px;padding:8px 0;">Loading…</div>
     </div>
-    <div class="row">
-      <div>
-        <div class="r-label">Nova Studio — Facebook</div>
-        <div class="r-sub">Connected Jun 18, 2026</div>
-      </div>
-      <a class="btn-secondary" href="#" onclick="return false;">Disconnect</a>
-    </div>
-    <div class="row">
-      <div>
-        <div class="r-label">+ Connect another profile</div>
-      </div>
+    <div class="row" style="border-bottom:none;padding-bottom:0;margin-top:12px;">
+      <div><div class="r-label">+ Connect another channel</div></div>
       <a class="btn-secondary" href="onboarding.html">Connect</a>
     </div>
   </div>
@@ -347,6 +334,22 @@
 </div>
 
 <script>
+  const API = 'http://localhost:9000';
+
+  // ── Auth guard ──────────────────────────────────────────────
+  (function(){
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('token')) localStorage.setItem('sw_token', params.get('token'));
+    if (!localStorage.getItem('sw_token')) window.location.href = 'index.html';
+  })();
+
+  function authHeader(){ return { 'Authorization': 'Bearer ' + localStorage.getItem('sw_token') }; }
+
+  function logout(){
+    localStorage.removeItem('sw_token');
+    window.location.href = 'index.html';
+  }
+
   function openDrawer(){
     document.getElementById('drawer').classList.add('open');
     document.getElementById('drawerOverlay').classList.add('open');
@@ -356,6 +359,72 @@
     document.getElementById('drawerOverlay').classList.remove('open');
   }
   document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeDrawer(); });
+
+  // ── Load user profile + connected channels ──────────────────
+  async function initPage(){
+    try {
+      const [meResp, chResp] = await Promise.all([
+        fetch(`${API}/auth/me`, { headers: authHeader() }),
+        fetch(`${API}/api/channels`, { headers: authHeader() }),
+      ]);
+      if (meResp.status === 401){ logout(); return; }
+      const u = await meResp.json();
+      const initials = (u.name || u.email || '?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+      document.getElementById('avatarInitials').textContent = initials;
+
+      const container = document.getElementById('connected-channels');
+      if (chResp.ok) {
+        const channels = await chResp.json();
+        if (channels.length === 0) {
+          container.innerHTML = '<div style="color:var(--ink-soft);font-size:13px;padding:8px 0;">No channels connected yet.</div>';
+        } else {
+          container.innerHTML = channels.map(ch => {
+            const platform = ch.platform ? ch.platform.charAt(0).toUpperCase() + ch.platform.slice(1).toLowerCase() : '';
+            const label = [ch.name || ch.id, platform].filter(Boolean).join(' — ');
+            const connected = ch.created_at ? new Date(ch.created_at).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '';
+            return `
+            <div class="row" data-channel-id="${ch.id}">
+              <div>
+                <div class="r-label">${label}</div>
+                ${connected ? `<div class="r-sub">Connected ${connected}</div>` : ''}
+              </div>
+              <button class="btn-secondary" onclick="disconnectChannel('${ch.id}', this)">Disconnect</button>
+            </div>`;
+          }).join('');
+        }
+      } else {
+        container.innerHTML = '<div style="color:var(--negative);font-size:13px;">Failed to load channels.</div>';
+      }
+    } catch(e){
+      console.error('initPage error:', e);
+    }
+  }
+
+  async function disconnectChannel(channelId, btn){
+    if (!confirm('Disconnect this channel? This will stop tracking comments from it.')) return;
+    btn.disabled = true;
+    btn.textContent = 'Disconnecting…';
+    try {
+      const r = await fetch(`${API}/api/channels/${encodeURIComponent(channelId)}/disconnect`, {
+        method: 'POST', headers: authHeader(),
+      });
+      if (r.ok || r.status === 404) {
+        // Remove the row from DOM
+        const row = btn.closest('.row');
+        if (row) row.remove();
+        const container = document.getElementById('connected-channels');
+        if (container && container.querySelectorAll('.row').length === 0) {
+          container.innerHTML = '<div style="color:var(--ink-soft);font-size:13px;padding:8px 0;">No channels connected yet.</div>';
+        }
+      } else {
+        btn.disabled = false;
+        btn.textContent = 'Disconnect';
+        alert('Failed to disconnect. Please try again.');
+      }
+    } catch(e){ btn.disabled = false; btn.textContent = 'Disconnect'; }
+  }
+
+  document.addEventListener('DOMContentLoaded', initPage);
 
   function cleanup(years){
     const toast = document.getElementById('toast');
