@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: signalwave-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        sync: false          # set in Render dashboard
+      - key: JWT_SECRET_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: FACEBOOK_APP_ID
+        sync: false
+      - key: FACEBOOK_APP_SECRET
+        sync: false
+      - key: GRAPH_API_VERSION
+        value: v21.0
+      - key: FRONTEND_URL
+        value: https://billaiqur.github.io/signalwave
+      - key: BACKEND_URL
+        sync: false          # set to your Render URL after first deploy
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4o
+      - key: AI_PROVIDER
+        value: openai
+      - key: YOUTUBE_AUTH_MODE
+        value: oauth
+      - key: AUTO_HIDE_COMMENTS
+        value: "true"

@@ -73,11 +73,10 @@ YOUTUBE_CONNECT_SCOPES = (
     "https://www.googleapis.com/auth/youtube.force-ssl"
 )
 
-FRONTEND_URL  = os.getenv("FRONTEND_URL", "http://localhost:5500")   # GitHub Pages URL in prod
+FRONTEND_URL  = os.getenv("FRONTEND_URL", "http://localhost:9000")   # GitHub Pages URL in prod
 BACKEND_URL   = os.getenv("BACKEND_URL", "http://localhost:9000")    # Render URL in prod
 
-GRAPH_API_VERSION = os.getenv("GRAPH_API_VERSION", "v19.0")
-
+GRAPH_API_VERSION = os.getenv("GRAPH_API_VERSION", "v21.0")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # In-memory state store for CSRF protection (replace with Redis in production)

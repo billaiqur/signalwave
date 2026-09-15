@@ -921,7 +921,10 @@
 
 <script>
   // ── Config ────────────────────────────────────────────────
-  const API = localStorage.getItem('sw_api_base') || 'http://localhost:9000';
+  const API = localStorage.getItem('sw_api_base') ||
+    ((location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+      ? 'http://localhost:9000'
+      : 'https://signalwave-api.onrender.com');
 
   // ── Extract token from URL FIRST (before auth guard) ─────
   (function () {

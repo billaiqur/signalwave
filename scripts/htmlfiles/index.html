@@ -455,7 +455,10 @@
   // ── Configuration ──────────────────────────────────────────
   // In production this points to your Render/Railway backend URL.
   // During local dev it points to localhost:9000.
-  const API = localStorage.getItem('sw_api_base') || 'http://localhost:9000';
+  const API = localStorage.getItem('sw_api_base') ||
+    ((location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+      ? 'http://localhost:9000'
+      : 'https://signalwave-api.onrender.com');
 
   // ── On page load: if a token was returned via URL param, store it ──
   (function () {
