@@ -21,7 +21,7 @@ POSTGRES_SCHEMA   = os.getenv("POSTGRES_SCHEMA", "harassment_tracker")
 DATABASE_URL = (
     f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}"
     f"@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
-    f"?options=-csearch_path%3D{POSTGRES_SCHEMA}"
+    f"?options=-csearch_path%3D{POSTGRES_SCHEMA}&sslmode=require"
 )
 
 engine = create_engine(DATABASE_URL, echo=False)
