@@ -56,15 +56,11 @@ FACEBOOK_APP_ID     = os.getenv("FACEBOOK_APP_ID", "")
 FACEBOOK_APP_SECRET = os.getenv("FACEBOOK_APP_SECRET", "")
 
 # Meta scopes for ACCOUNT CONNECTION (not login)
-# Basic scopes work immediately in Live mode.
-# Advanced scopes (pages_manage_engagement, instagram_*) require Meta App Review.
+# TEMP (testing): keep only minimal page scopes.
+# Re-enable advanced scopes after connection flow is confirmed working.
 META_CONNECT_SCOPES = (
     "pages_show_list,"
-    "pages_read_engagement,"
-    "pages_manage_posts,"
-    "pages_manage_engagement,"
-    "instagram_basic,"
-    "instagram_manage_comments"
+    "pages_read_engagement"
 )
 
 # YouTube scopes for ACCOUNT CONNECTION
