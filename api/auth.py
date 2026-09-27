@@ -54,6 +54,7 @@ GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
 
 FACEBOOK_APP_ID     = os.getenv("FACEBOOK_APP_ID", "")
 FACEBOOK_APP_SECRET = os.getenv("FACEBOOK_APP_SECRET", "")
+FACEBOOK_LOGIN_CONFIG_ID = os.getenv("FACEBOOK_LOGIN_CONFIG_ID", "").strip()
 
 # Meta scopes for ACCOUNT CONNECTION (not login)
 # TEMP (testing): keep only minimal page scopes.
@@ -327,13 +328,16 @@ def facebook_start():
     state = secrets.token_urlsafe(32)
     _oauth_states[state] = {"provider": "facebook", "purpose": "login"}
 
-    params = urllib.parse.urlencode({
+    params_dict = {
         "client_id": FACEBOOK_APP_ID,
         "redirect_uri": f"{BACKEND_URL}/auth/facebook/callback",
         "state": state,
         "scope": "email,public_profile",
         "response_type": "code",
-    })
+    }
+    if FACEBOOK_LOGIN_CONFIG_ID:
+        params_dict["config_id"] = FACEBOOK_LOGIN_CONFIG_ID
+    params = urllib.parse.urlencode(params_dict)
     return RedirectResponse(
         f"https://www.facebook.com/{GRAPH_API_VERSION}/dialog/oauth?{params}", status_code=302
     )
@@ -392,13 +396,16 @@ def meta_connect_start(current_user: User = Depends(get_current_user)):
     state = secrets.token_urlsafe(32)
     _oauth_states[state] = {"provider": "meta", "purpose": "connect", "user_id": current_user.id}
 
-    params = urllib.parse.urlencode({
+    params_dict = {
         "client_id": FACEBOOK_APP_ID,
         "redirect_uri": f"{BACKEND_URL}/auth/meta/connect/callback",
         "state": state,
         "scope": META_CONNECT_SCOPES,
         "response_type": "code",
-    })
+    }
+    if FACEBOOK_LOGIN_CONFIG_ID:
+        params_dict["config_id"] = FACEBOOK_LOGIN_CONFIG_ID
+    params = urllib.parse.urlencode(params_dict)
     return {"redirect_url": f"https://www.facebook.com/{GRAPH_API_VERSION}/dialog/oauth?{params}"}
 
 
