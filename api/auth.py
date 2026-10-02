@@ -69,6 +69,7 @@ YOUTUBE_CONNECT_SCOPES = (
     "https://www.googleapis.com/auth/youtube.readonly "
     "https://www.googleapis.com/auth/youtube.force-ssl"
 )
+CONNECT_PROFILES_TTL_MINUTES = int(os.getenv("CONNECT_PROFILES_TTL_MINUTES", "10"))
 
 FRONTEND_URL  = os.getenv("FRONTEND_URL", "http://localhost:9000")   # GitHub Pages URL in prod
 BACKEND_URL   = os.getenv("BACKEND_URL", "http://localhost:9000")    # Render URL in prod
@@ -78,6 +79,28 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # In-memory state store for CSRF protection (replace with Redis in production)
 _oauth_states: dict[str, dict] = {}
+_connect_profiles_store: dict[str, dict] = {}
+
+
+def _cleanup_expired_connect_profiles() -> None:
+    now = datetime.utcnow()
+    expired_keys = [
+        key for key, payload in _connect_profiles_store.items()
+        if payload.get("expires_at") and payload["expires_at"] <= now
+    ]
+    for key in expired_keys:
+        _connect_profiles_store.pop(key, None)
+
+
+def _store_connect_profiles(user_id: int, profiles: list[dict]) -> str:
+    _cleanup_expired_connect_profiles()
+    key = secrets.token_urlsafe(24)
+    _connect_profiles_store[key] = {
+        "user_id": user_id,
+        "profiles": profiles,
+        "expires_at": datetime.utcnow() + timedelta(minutes=CONNECT_PROFILES_TTL_MINUTES),
+    }
+    return key
 
 
 # ── JWT helpers ────────────────────────────────────────────────
@@ -506,15 +529,31 @@ def meta_connect_callback(
 
     logger.info(f"[Meta] Found {len(profiles)} profiles for user {user.id}")
 
-    # Redirect back to onboarding with profiles in session
+    # Redirect back to onboarding with opaque profiles key (avoid token-bearing URL params)
     token = _create_jwt(user.id)
-    profiles_param = urllib.parse.quote_plus(
-        __import__("json").dumps(profiles)
-    )
+    profiles_key = _store_connect_profiles(user.id, profiles)
     return RedirectResponse(
-        f"{FRONTEND_URL}/onboarding.html?token={token}&step=3&profiles={profiles_param}",
+        f"{FRONTEND_URL}/onboarding.html?token={token}&step=3&profiles_key={profiles_key}",
         status_code=302,
     )
+
+
+@router.get("/connect/profiles")
+def get_connect_profiles(
+    key: str = Query(..., min_length=8),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Returns short-lived connected profiles prepared during OAuth callback.
+    Tokens are never included in URL query params; frontend fetches by opaque key.
+    """
+    _cleanup_expired_connect_profiles()
+    payload = _connect_profiles_store.pop(key, None)
+    if not payload:
+        raise HTTPException(status_code=404, detail="Profiles session not found or expired")
+    if payload.get("user_id") != current_user.id:
+        raise HTTPException(status_code=403, detail="Profiles session does not belong to current user")
+    return {"profiles": payload.get("profiles", [])}
 
 
 # ══════════════════════════════════════════════════════════════
@@ -613,11 +652,9 @@ def youtube_connect_callback(
         })
 
     token = _create_jwt(user.id)
-    profiles_param = urllib.parse.quote_plus(
-        __import__("json").dumps(profiles)
-    )
+    profiles_key = _store_connect_profiles(user.id, profiles)
     return RedirectResponse(
-        f"{FRONTEND_URL}/onboarding.html?token={token}&step=3&profiles={profiles_param}",
+        f"{FRONTEND_URL}/onboarding.html?token={token}&step=3&profiles_key={profiles_key}",
         status_code=302,
     )
 

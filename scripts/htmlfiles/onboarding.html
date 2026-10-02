@@ -927,7 +927,7 @@
       : 'https://signalwave-u1jg.onrender.com');
 
   // ── Extract token from URL FIRST (before auth guard) ─────
-  (function () {
+  (async function () {
     const params = new URLSearchParams(window.location.search);
 
     // Fresh token from login/register redirect — save it before guard runs
@@ -937,13 +937,29 @@
 
     // Coming back from account-connection OAuth callback
     const step = params.get('step');
+    const profilesKey = params.get('profiles_key');
     const profilesRaw = params.get('profiles');
-    if (step === '3' && profilesRaw) {
-      try {
-        const profiles = JSON.parse(decodeURIComponent(profilesRaw));
-        populateProfileList(profiles);
-        goToStep(3);
-      } catch(e) { console.error('profile parse error', e); }
+    if (step === '3') {
+      if (profilesKey) {
+        try {
+          const res = await fetch(`${API}/auth/connect/profiles?key=${encodeURIComponent(profilesKey)}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('sw_token')}` },
+          });
+          if (!res.ok) throw new Error(`profiles fetch failed (${res.status})`);
+          const data = await res.json();
+          populateProfileList(data.profiles || []);
+          goToStep(3);
+        } catch (e) {
+          console.error('profiles fetch error', e);
+        }
+      } else if (profilesRaw) {
+        // Legacy fallback for old callback format
+        try {
+          const profiles = JSON.parse(decodeURIComponent(profilesRaw));
+          populateProfileList(profiles);
+          goToStep(3);
+        } catch(e) { console.error('profile parse error', e); }
+      }
     }
 
     // Clean URL params
